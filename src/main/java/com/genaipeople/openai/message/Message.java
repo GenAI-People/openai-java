@@ -1,17 +1,31 @@
 package com.genaipeople.openai.message;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.genaipeople.openai.Role;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
+    @JsonProperty("role")
     private Role role;
+
+    @JsonProperty("content")
     private String content;
+
+    @JsonProperty("name")
     private String name; // optional
 
-    public Message(String content, Role role){
+    @JsonProperty("refusal")
+    private String refusal;
+
+    public Message(String content, Role role) {
         this.role = role;
         this.content = content;
     }
-    
+
+    // Required for Jackson deserialization
+    public Message() {}
+
     // Getters
     public Role getRole() {
         return role;
@@ -36,5 +50,13 @@ public class Message {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setRefusal(String refusal) {
+        this.refusal = refusal;
+    }
+
+    public String getRefusal() {
+        return refusal;
     }
 }

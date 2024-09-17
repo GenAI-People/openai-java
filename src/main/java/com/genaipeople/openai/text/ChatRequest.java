@@ -3,29 +3,73 @@ package com.genaipeople.openai.text;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.genaipeople.openai.message.Message;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChatRequest {
+    @JsonProperty("messages")
     private List<Message> messages;
+
+    @JsonProperty("model")
     private String model;
+
+    @JsonProperty("temperature")
     private Double temperature;
+
+    @JsonProperty("n")
     private Integer n;
+
+    @JsonProperty("stream")
     private Boolean stream;
+
+    @JsonProperty("frequency_penalty")
     private Double frequencyPenalty;
+
+    @JsonProperty("logit_bias")
     private Map<String, Integer> logitBias;
+
+    @JsonProperty("logprobs")
     private Boolean logprobs;
+
+    @JsonProperty("top_logprobs")
     private Integer topLogprobs;
+
+    @JsonProperty("max_completion_tokens")
     private Integer maxCompletionTokens;
+
+    @JsonProperty("presence_penalty")
     private Double presencePenalty;
+
+    @JsonProperty("response_format")
     private ResponseFormat responseFormat;
+
+    @JsonProperty("seed")
     private Integer seed;
-    private String serviceTier;
+
+    @JsonProperty("service_tier")
+    private ServiceTier serviceTier;
+
+    @JsonProperty("stop")
     private Object stop;
+
+    @JsonProperty("stream_options")
     private Object streamOptions;
+
+    @JsonProperty("top_p")
     private Double topP;
+
+    @JsonProperty("tools")
     private List<Object> tools;
+
+    @JsonProperty("tool_choice")
     private Object toolChoice;
+
+    @JsonProperty("parallel_tool_calls")
     private Boolean parallelToolCalls;
+
+    @JsonProperty("user")
     private String user;
 
     public ChatRequest(List<Message> messages, String model){
@@ -138,11 +182,11 @@ public class ChatRequest {
         this.seed = seed;
     }
 
-    public String getServiceTier() {
+    public ServiceTier getServiceTier() {
         return serviceTier;
     }
 
-    public void setServiceTier(String serviceTier) {
+    public void setServiceTier(ServiceTier serviceTier) {
         this.serviceTier = serviceTier;
     }
 

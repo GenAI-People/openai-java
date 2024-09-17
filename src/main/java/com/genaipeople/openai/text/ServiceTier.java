@@ -1,13 +1,14 @@
-package com.genaipeople.openai.assistant;
+package com.genaipeople.openai.text;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum ToolType {
-    FUNCTION("function");
+public enum ServiceTier {
+    AUTO("auto"),
+    DEFAULT("default");
 
     private final String value;
 
-    ToolType(String value) {
+    ServiceTier(String value) {
         this.value = value;
     }
 

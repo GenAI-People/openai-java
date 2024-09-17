@@ -1,7 +1,14 @@
 package com.genaipeople.openai.text;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseFormat {
+    @JsonProperty("type")
     private ResponseType type;
+
+    @JsonProperty("json_schema")
     private JsonSchema jsonSchema;
 
     // Constructor
