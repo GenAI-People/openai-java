@@ -1,8 +1,23 @@
 package com.genaipeople.openai.assistant;
 
-public class Function{
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class Function {
+    @JsonProperty("name")
     private String name;
+
+    @JsonProperty("arguments")
     private String arguments;
+
+    // No-args constructor for JSON deserialization
+    public Function() {}
+
+    public Function(String name, String arguments) {
+        this.name = name;
+        this.arguments = arguments;
+    }
 
     // Getters
     public String getName() {

@@ -3,13 +3,24 @@ package com.genaipeople.openai.text;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class JsonSchema {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]{1,64}$");
     private static final int MAX_NAME_LENGTH = 64;
 
+    @JsonProperty("description")
     private String description;
+
+    @JsonProperty("name")
     private String name;
+
+    @JsonProperty("schema")
     private Map<String, Object> schema;
+
+    @JsonProperty("strict")
     private Boolean strict;
 
     // Constructor

@@ -1,8 +1,21 @@
 package com.genaipeople.openai;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Role {
-    SYSTEM,
-    USER,
-    ASSISTANT,
-    TOOL
+    SYSTEM("system"),
+    USER("user"),
+    ASSISTANT("assistant"),
+    TOOL("tool");
+
+    private final String value;
+
+    Role(String value) {
+        this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
 }
