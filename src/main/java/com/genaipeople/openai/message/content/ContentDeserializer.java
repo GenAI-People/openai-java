@@ -37,7 +37,15 @@ public class ContentDeserializer extends JsonDeserializer<Content> {
                     } else if ("text".equals(fieldName) && "text".equals(type)) {
                         text = p.getText();
                     } else if ("image_url".equals(fieldName) && "image_url".equals(type)) {
-                        imageUrl = p.getText();
+                        // Handle nested image_url object
+                        if (p.currentToken() == JsonToken.START_OBJECT) {
+                            while (p.nextToken() != JsonToken.END_OBJECT) {
+                                if ("url".equals(p.getCurrentName())) {
+                                    p.nextToken();
+                                    imageUrl = p.getText();
+                                }
+                            }
+                        }
                     }
                 }
             }
