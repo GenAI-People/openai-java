@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.genaipeople.openai.message.content.ContentDeserializer;
 import com.genaipeople.openai.message.content.ImageContent;
 import com.genaipeople.openai.message.content.TextContent;
@@ -17,7 +18,7 @@ class ContentDeserializerTest {
 
     @Test
     public void testImageContentDeserialization() throws IOException {
-        String jsonInput = "[{\"type\":\"text\",\"text\":\"Sample text\"},{\"type\":\"image_url\",\"image_url\":\"http://example.com/image.jpg\"}]";
+        String jsonInput = "[{\"type\":\"text\",\"text\":\"Sample text\"},{\"type\":\"image_url\",\"image_url\":{\"url\":\"http://example.com/image.jpg\"}}]";
         ContentDeserializer deserializer = new ContentDeserializer();
         JsonParser parser = new ObjectMapper().getFactory().createParser(jsonInput);
         parser.nextToken(); // Move to START_ARRAY token
@@ -44,5 +45,19 @@ class ContentDeserializerTest {
 
         TextContent textContent = (TextContent) content;
         assertEquals("Hello, world!", textContent.getContent());
+    }
+
+    @Test
+    public void testDeserializeNewImageContent() throws Exception {
+        String json = "[{\"type\":\"text\",\"text\":\"What's in this image?\"},{\"type\":\"image_url\",\"image_url\":{\"url\":\"https://example.com/image.jpg\"}}]";
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new SimpleModule().addDeserializer(Content.class, new ContentDeserializer()));
+        
+        Content content = mapper.readValue(json, Content.class);
+        
+        assertTrue(content instanceof ImageContent);
+        ImageContent imageContent = (ImageContent) content;
+        assertEquals("What's in this image?", imageContent.getContent());
+        assertEquals("https://example.com/image.jpg", imageContent.getImageUrl());
     }
 }
