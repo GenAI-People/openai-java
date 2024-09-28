@@ -1,6 +1,7 @@
 package com.genaipeople.openai;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,11 +9,13 @@ import com.genaipeople.openai.service.RestClient;
 import com.genaipeople.openai.service.RestClient.HttpMethod;
 import com.genaipeople.openai.text.ChatRequest;
 import com.genaipeople.openai.text.ChatResponse;
+import com.genaipeople.openai.text.ErrorResponse;
 
 public class Chat {
     private final String apiKey;
     private final String COMPLETION_URL = "https://api.openai.com/v1/chat/completions";
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Pattern ERROR_PATTERN = Pattern.compile("^\\s*\\{\\s*\"error\":\\s*\\{");
 
     public Chat(String apiKey){
         this.apiKey = apiKey;
@@ -27,19 +30,21 @@ public class Chat {
                 System.out.println("Response: " + responseString);
                 return CompletableFuture.completedFuture(stringToChatResponse(responseString));
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
                 return CompletableFuture.failedFuture(new RuntimeException("Request interrupted", e));
             } catch (Exception e) {
-                return CompletableFuture.failedFuture(new RuntimeException("Error executing request", e));
+                return CompletableFuture.failedFuture(new RuntimeException(e.getMessage()));
             }
-        }).exceptionally(e -> {
-            System.err.println("Error in chat completion: " + e.getMessage());
-            throw new RuntimeException("Error executing request", e);
         });
     }
 
     public ChatResponse stringToChatResponse(String responseString) {
         try {
+            if (ERROR_PATTERN.matcher(responseString).find()) {
+                String jsonPart = responseString.substring(responseString.indexOf("{"));
+                ErrorResponse errorResponse = objectMapper.readValue(jsonPart, ErrorResponse.class);
+                throw new RuntimeException("Code: " + errorResponse.getError().getCode() + 
+                    " Message: " + errorResponse.getError().getMessage());
+            }
             return objectMapper.readValue(responseString, ChatResponse.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error parsing response string to ChatResponse", e);

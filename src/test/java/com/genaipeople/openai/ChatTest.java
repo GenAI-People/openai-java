@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -27,7 +28,7 @@ import com.genaipeople.openai.text.ChatResponse;
 class ChatTest {
 
     private Chat chat;
-    private static final String API_KEY = "";
+    private static final String API_KEY = "api-key";
     private static final String COMPLETION_URL = "https://api.openai.com/v1/chat/completions";
     private static final String MODEL = "gpt-4o";
 
@@ -254,5 +255,111 @@ class ChatTest {
             }
         }
     }
-}
 
+    @Test
+    void testImageChatCompletionResponseWithInvalidImageUrl() throws JsonProcessingException, ExecutionException, InterruptedException {
+        List<Message> messages = new ArrayList<>();
+        messages.add(new Message("You are a helpful assistant.", Role.SYSTEM));
+        messages.add(new Message("What's in this image?", null, 
+                Role.USER));
+        ChatRequest chatRequest = new ChatRequest(messages, MODEL);
+
+        String jsonResponse = "{\n" +
+                "  \"id\": \"chatcmpl-789\",\n" +
+                "  \"object\": \"chat.completion\",\n" +
+                "  \"created\": 1677652295,\n" +
+                "  \"model\": \"gpt-4-vision-preview\",\n" +
+                "  \"system_fingerprint\": \"fp_44709d6fcb\",\n" +
+                "  \"choices\": [{\n" +
+                "    \"index\": 0,\n" +
+                "    \"message\": {\n" +
+                "      \"role\": \"assistant\",\n" +
+                "      \"content\": \"The image URL provided is invalid.\"\n" +
+                "    },\n" +
+                "    \"logprobs\": null,\n" +
+                "    \"finish_reason\": \"stop\"\n" +
+                "  }],\n" +
+                "  \"usage\": {\n" +
+                "    \"prompt_tokens\": 60,\n" +
+                "    \"completion_tokens\": 90,\n" +
+                "    \"total_tokens\": 150\n" +
+                "  }\n" +
+                "}";
+
+        try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest))
+                    .thenReturn(CompletableFuture.completedFuture(jsonResponse));
+
+            CompletableFuture<ChatResponse> futureResponse = chat.complete(chatRequest);
+            ChatResponse actualResponse = futureResponse.get();
+
+            ChatResponse expectedResponse = chat.stringToChatResponse(jsonResponse);
+            System.out.println(expectedResponse);
+            assertNotNull(actualResponse);
+           
+            List<Choice> actualChoices = actualResponse.getChoices();
+            List<Choice> expectedChoices = expectedResponse.getChoices();
+            assertNotNull(actualChoices);
+            assertEquals(expectedChoices.size(), actualChoices.size());
+            for (int i = 0; i < expectedChoices.size(); i++) {
+                Choice expectedChoice = expectedChoices.get(i);
+                Choice actualChoice = actualChoices.get(i);
+                assertEquals(expectedChoice.getMessage().getRole(), actualChoice.getMessage().getRole());
+                assertNotNull(actualChoice.getMessage().getContent());
+                TextContent actualTextContent = (TextContent) actualChoice.getMessage().getContent();
+                System.out.println(actualTextContent.getContent());
+                assertTrue(actualTextContent.getContent().length() > 0);
+            }
+        }
+    }
+
+    @Test
+    void testImageChatCompletionResponseWithInvalidImageUrlFormat() throws InterruptedException {
+        List<Message> messages = new ArrayList<>();
+        messages.add(new Message("You are a helpful assistant.", Role.SYSTEM));
+        messages.add(new Message("What's in this image?", "1*LLxq7oaQj8dmPW3wKZTMJA.jpeg", Role.USER));
+        ChatRequest chatRequest = new ChatRequest(messages, MODEL);
+
+        String jsonResponse = "Response: {\n" +
+                "  \"error\": {\n" +
+                "    \"message\": \"Invalid image.\",\n" +
+                "    \"type\": \"invalid_request_error\",\n" +
+                "    \"param\": null,\n" +
+                "    \"code\": \"invalid_image\"\n" +
+                "  }\n" +
+                "}";
+
+        try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest))
+                    .thenReturn(CompletableFuture.completedFuture(jsonResponse));
+            
+            CompletableFuture<ChatResponse> futureResponse = chat.complete(chatRequest);
+            
+            try {
+                futureResponse.get();
+                fail("Expected an exception, but got a response");
+            } catch (InterruptedException | ExecutionException e) {
+                System.out.println(e.getCause().getMessage());
+                assertEquals("Code: invalid_image Message: Invalid image.", e.getCause().getMessage());
+                // Handle or rethrow the exception as needed
+            }
+        }
+    }
+
+    @Test
+    void testErrorResponse() throws JsonProcessingException {
+        String errorResponse = "Response: {\n" +
+                "  \"error\": {\n" +
+                "    \"message\": \"Invalid image.\",\n" +
+                "    \"type\": \"invalid_request_error\",\n" +
+                "    \"param\": null,\n" +
+                "    \"code\": \"invalid_image\"\n" +
+                "  }\n" +
+                "}";
+
+        Chat chat = new Chat(API_KEY);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> chat.stringToChatResponse(errorResponse));
+        assertEquals("Code: invalid_image Message: Invalid image.", exception.getMessage());
+    }
+}
