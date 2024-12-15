@@ -18,6 +18,9 @@ public class Choice {
     @JsonProperty("logprobs")
     private LogProbs logprobs;
 
+    @JsonProperty("delta")
+    private Delta delta;
+
     // Getters
     public Integer getIndex() {
         return index;
@@ -50,5 +53,13 @@ public class Choice {
 
     public void setLogprobs(LogProbs logprobs) {
         this.logprobs = logprobs;
+    }
+
+    public Delta getDelta() {
+        return delta;
+    }
+
+    public void setDelta(Delta delta) {
+        this.delta = delta;
     }
 }

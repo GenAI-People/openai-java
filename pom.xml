@@ -5,6 +5,7 @@
     <groupId>com.genaipeople</groupId>
     <artifactId>openai-java</artifactId>
     <version>0.1</version>
+    <packaging>jar</packaging>
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

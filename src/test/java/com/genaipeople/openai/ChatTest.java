@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Flow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.genaipeople.openai.message.Message;
 import com.genaipeople.openai.message.content.TextContent;
 import com.genaipeople.openai.response.Choice;
+import com.genaipeople.openai.response.Delta;
 import com.genaipeople.openai.service.RestClient;
 import com.genaipeople.openai.service.RestClient.HttpMethod;
 import com.genaipeople.openai.text.ChatRequest;
@@ -28,7 +30,7 @@ import com.genaipeople.openai.text.ChatResponse;
 class ChatTest {
 
     private Chat chat;
-    private static final String API_KEY = "api-key";
+    private static final String API_KEY = "API-Key";
     private static final String COMPLETION_URL = "https://api.openai.com/v1/chat/completions";
     private static final String MODEL = "gpt-4o";
 
@@ -361,5 +363,154 @@ class ChatTest {
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> chat.stringToChatResponse(errorResponse));
         assertEquals("Code: invalid_image Message: Invalid image.", exception.getMessage());
+    }
+
+    @Test
+    void testStream() {
+        ChatRequest request = new ChatRequest(Arrays.asList(new Message("Hello", Role.USER)), MODEL);
+        Flow.Publisher<ChatResponse> stream = chat.stream(request);
+        Object lock = new Object();
+        stream.subscribe(new Flow.Subscriber<ChatResponse>() {
+            @Override
+            public void onSubscribe(Flow.Subscription subscription) {
+                subscription.request(Long.MAX_VALUE);
+                System.out.println("Subscription requested");
+            }
+
+            @Override
+            public void onNext(ChatResponse item) {
+                Choice choice = item.getChoices().get(0);   
+                Delta delta = choice.getDelta();
+                if (choice.getFinishReason() == null) {
+                    System.out.println("Item: " + delta.getContent().getContent());
+                }
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("Stream completed in Test");
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+        });
+        assertNotNull(stream);
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    } 
+
+    @Test
+    void testStreamNoInput() {
+        ChatRequest request = new ChatRequest(Arrays.asList(new Message("", Role.USER)), MODEL);
+        Flow.Publisher<ChatResponse> stream = chat.stream(request);
+        Object lock = new Object();
+        stream.subscribe(new Flow.Subscriber<ChatResponse>() {
+            @Override
+            public void onSubscribe(Flow.Subscription subscription) {
+                subscription.request(Long.MAX_VALUE);
+                System.out.println("Subscription requested");
+            }
+
+            @Override
+            public void onNext(ChatResponse item) {
+                Choice choice = item.getChoices().get(0);   
+                Delta delta = choice.getDelta();
+                if (choice.getFinishReason() == null) {
+                    System.out.println("Item: " + delta.getContent().getContent());
+                }
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+                fail("Stream failed in Test");
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("Stream completed in Test");
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+        });
+        assertNotNull(stream);
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    } 
+
+    @Test
+    void testStreamingImageChatCompletionResponse() throws JsonProcessingException, ExecutionException, InterruptedException {
+        List<Message> messages = new ArrayList<>();
+        messages.add(new Message("You are a helpful assistant.", Role.SYSTEM));
+        messages.add(new Message("What's in this image?", 
+                "https://miro.medium.com/v2/resize:fit:828/format:webp/1*LLxq7oaQj8dmPW3wKZTMJA.jpeg", 
+                Role.USER));
+        ChatRequest request = new ChatRequest(messages, MODEL);
+
+        Flow.Publisher<ChatResponse> stream = chat.stream(request);
+        Object lock = new Object();
+        stream.subscribe(new Flow.Subscriber<ChatResponse>() {
+            @Override
+            public void onSubscribe(Flow.Subscription subscription) {
+                subscription.request(Long.MAX_VALUE);
+                System.out.println("Subscription requested");
+            }
+
+            @Override
+            public void onNext(ChatResponse item) {
+                Choice choice = item.getChoices().get(0);   
+                Delta delta = choice.getDelta();
+                if (choice.getFinishReason() == null) {
+                    System.out.println("Item: " + delta.getContent().getContent());
+                }
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+                fail("Stream failed in Test");
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("Stream completed in Test");
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+        });
+        assertNotNull(stream);
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
