@@ -6,6 +6,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Flow;
+import java.util.concurrent.SubmissionPublisher;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -57,5 +62,55 @@ public class RestClient {
             failedFuture.completeExceptionally(e);
             return failedFuture;
         }
+    }
+
+    public static Flow.Publisher<String> makeStreamingRequest(String apiKey, String url, 
+            HttpMethod method, Object requestBody) {
+        SubmissionPublisher<String> publisher = new SubmissionPublisher<>();
+        
+        try {
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "text/event-stream")
+                    .header("Authorization", "Bearer " + apiKey);
+
+            if (method == HttpMethod.POST && requestBody != null) {
+                String jsonBody = objectMapper.writeValueAsString(requestBody);
+                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+            }
+
+            HttpRequest request = requestBuilder.build();
+
+            httpClient.sendAsync(request, BodyHandlers.ofInputStream())
+                    .thenAccept(response -> {
+                        try (BufferedReader reader = new BufferedReader(
+                                new InputStreamReader(response.body()))) {
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                if (line.startsWith("data: ")) {
+                                    String data = line.substring(6).trim();
+                                    if (!data.equals("[DONE]")) {
+                                        publisher.submit(data);
+                                    } else {
+                                        publisher.close();
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            publisher.closeExceptionally(e);
+                            return;
+                        }
+                    })
+                    .exceptionally(e -> {
+                        publisher.closeExceptionally(e);
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            publisher.closeExceptionally(e);
+        }
+
+        return publisher;
     }
 }

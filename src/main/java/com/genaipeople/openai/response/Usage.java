@@ -17,6 +17,18 @@ public class Usage {
     @JsonProperty("completion_tokens_details")
     private CompletionTokensDetails completionTokensDetails;
 
+    @JsonProperty("prompt_tokens_details")
+    private PromptTokenDetails promptTokenDetails;
+
+    @JsonProperty("audio_tokens")
+    private int audioTokens;
+
+    @JsonProperty("accepted_prediction_tokens")
+    private int acceptedPredictionTokens;
+
+    @JsonProperty("rejected_prediction_tokens")
+    private int rejectedPredictionTokens;
+
     // Getters and setters
     public Integer getPromptTokens() {
         return promptTokens;
@@ -48,5 +60,43 @@ public class Usage {
 
     public void setCompletionTokensDetails(CompletionTokensDetails completionTokensDetails) {
         this.completionTokensDetails = completionTokensDetails;
+    }
+
+    public PromptTokenDetails getPromptTokenDetails() {
+        return promptTokenDetails;
+    }
+
+    public void setPromptTokenDetails(PromptTokenDetails promptTokenDetails) {
+        this.promptTokenDetails = promptTokenDetails;
+    }
+
+    @JsonProperty("audio_tokens")
+    public int getAudioTokens() {
+        return audioTokens;
+    }
+
+    @JsonProperty("audio_tokens")
+    public void setAudioTokens(int audioTokens) {
+        this.audioTokens = audioTokens;
+    }
+
+    @JsonProperty("accepted_prediction_tokens")
+    public int getAcceptedPredictionTokens() {
+        return acceptedPredictionTokens;
+    }
+
+    @JsonProperty("accepted_prediction_tokens")
+    public void setAcceptedPredictionTokens(int acceptedPredictionTokens) {
+        this.acceptedPredictionTokens = acceptedPredictionTokens;
+    }
+
+    @JsonProperty("rejected_prediction_tokens")
+    public int getRejectedPredictionTokens() {
+        return rejectedPredictionTokens;
+    }
+
+    @JsonProperty("rejected_prediction_tokens")
+    public void setRejectedPredictionTokens(int rejectedPredictionTokens) {
+        this.rejectedPredictionTokens = rejectedPredictionTokens;
     }
 }

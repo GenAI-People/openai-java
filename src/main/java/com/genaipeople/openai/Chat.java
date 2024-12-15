@@ -1,6 +1,8 @@
 package com.genaipeople.openai;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Flow;
+import java.util.concurrent.SubmissionPublisher;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,14 +29,45 @@ public class Chat {
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                System.out.println("Response: " + responseString);
                 return CompletableFuture.completedFuture(stringToChatResponse(responseString));
             } catch (InterruptedException e) {
                 return CompletableFuture.failedFuture(new RuntimeException("Request interrupted", e));
             } catch (Exception e) {
+                e.printStackTrace();
                 return CompletableFuture.failedFuture(new RuntimeException(e.getMessage()));
             }
         });
+    }
+
+    public Flow.Publisher<ChatResponse> stream(ChatRequest request) {
+        request.setStream(true);
+        SubmissionPublisher<ChatResponse> publisher = new SubmissionPublisher<>();
+        
+        RestClient.makeStreamingRequest(apiKey, COMPLETION_URL, HttpMethod.POST, request)
+            .subscribe(new Flow.Subscriber<String>() {
+                @Override
+                public void onSubscribe(Flow.Subscription subscription) {
+                    subscription.request(Long.MAX_VALUE);
+                }
+                
+                @Override
+                public void onNext(String item) {
+                    publisher.submit(stringToChatResponse(item));
+                }
+                
+                @Override
+                public void onError(Throwable throwable) {
+                    publisher.closeExceptionally(throwable);
+                }
+                
+                @Override
+                public void onComplete() {
+                    System.out.println("Stream completed in Chat");
+                    publisher.close();
+                }
+            });
+        
+        return publisher;
     }
 
     public ChatResponse stringToChatResponse(String responseString) {
