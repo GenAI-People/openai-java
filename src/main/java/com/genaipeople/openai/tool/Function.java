@@ -1,8 +1,11 @@
 package com.genaipeople.openai.tool;
 
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.genaipeople.openai.tool.type.ObjectType;
+import com.genaipeople.openai.tool.type.Type;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Function {
@@ -13,7 +16,7 @@ public class Function {
     private String name;
 
     @JsonProperty("parameters")
-    private ObjectType parameters;
+    private Map<String, Type<?>> parameters;
 
     @JsonProperty("strict")
     private Boolean strict;
@@ -37,12 +40,12 @@ public class Function {
         this.name = name;
     }
 
-    public ObjectType getParameters() {
+    public Map<String, Type<?>> getParameters() {
         return parameters;
     }
 
-    public void setParameters(ObjectType parameters) {
-        this.parameters = parameters;
+    public void addParameter(String name, Type<?> parameter) {
+        parameters.put(name, parameter);
     }
 
     public Boolean getStrict() {

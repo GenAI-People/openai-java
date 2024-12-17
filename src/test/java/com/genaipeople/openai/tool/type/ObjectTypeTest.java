@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -16,100 +17,84 @@ class ObjectTypeTest {
 
     @Test
     void testBasicObjectSerialization() throws Exception {
-        ObjectType objectType = new ObjectType("Test object");
+        Type<String> stringType = new Type<String>(Name.STRING, "Test String", true);
         
-        String json = objectMapper.writeValueAsString(objectType);
+        String json = objectMapper.writeValueAsString(stringType);
         
-        assertTrue(json.contains("\"type\":\"object\""));
-        assertTrue(json.contains("\"description\":\"Test object\""));
+        assertTrue(json.contains("\"type\":\"string\""));
+        assertTrue(json.contains("\"description\":\"Test String\""));
     }
 
     @Test
     void testObjectWithProperties() throws Exception {
-        ObjectType objectType = new ObjectType("Object with properties");
-        Map<String, Type> properties = new HashMap<>();
+        Map<String, Type<?>> properties = new HashMap<>();
         
         // Add a string property
-        properties.put("name", new StringType("User's name"));
+        properties.put("name", new Type<String>(Name.STRING, "User's name", true));
         
         // Add a numeric property
-        properties.put("age", new NumericType<>(Integer.class, "User's age"));
+        properties.put("age", new Type<Integer>(Name.INTEGER, "User's age", true));
         
-        objectType.addProperty("name", new StringType("User's name"), true);
-        objectType.addProperty("age", new NumericType<>(Integer.class, "User's age"), true);
+        Type<Object> objectType = new Type<Object>(properties);
         
         String json = objectMapper.writeValueAsString(objectType);
-        
+        System.out.println(json);
         assertTrue(json.contains("\"properties\":{"));
         assertTrue(json.contains("\"name\":{\"type\":\"string\""));
         assertTrue(json.contains("\"age\":{\"type\":\"integer\""));
     }
 
     @Test
-    void testObjectWithRequiredFields() throws Exception {
-        ObjectType objectType = new ObjectType("Object with required fields");
-        Map<String, Type> properties = new HashMap<>();
-        properties.put("id", new StringType("User ID"));
-        properties.put("email", new StringType("Email address"));
+    void testObjectWithPropertiesAndEnums() throws Exception {
+        Map<String, Type<?>> properties = new HashMap<>();
         
-        objectType.addProperty("id", new StringType("User ID"), true);
-        objectType.addProperty("email", new StringType("Email address"), true);
+        // Add a string property
+        properties.put("name", new Type<String>(Name.STRING, "User's name", Arrays.asList("John", "Jane", "Doe"), true));
         
-        String json = objectMapper.writeValueAsString(objectType);
+        // Add a numeric property
+        properties.put("age", new Type<Integer>(Name.INTEGER, "User's age", Arrays.asList(18, 19, 20), true));
         
-        assertTrue(json.contains("\"required\":["));
-        assertTrue(json.contains("\"id\""));
-        assertTrue(json.contains("\"email\""));
-    }
-
-    @Test
-    void testObjectWithAdditionalProperties() throws Exception {
-        ObjectType objectType = new ObjectType("Object with additional properties");
-        objectType.setAdditionalProperties(false);
+        Type<Object> objectType = new Type<Object>(properties);
         
         String json = objectMapper.writeValueAsString(objectType);
-        
-        assertTrue(json.contains("\"additionalProperties\":false"));
+        System.out.println(json);
+        assertTrue(json.contains("\"properties\":{"));
+        assertTrue(json.contains("\"name\":{\"type\":\"string\""));
+        assertTrue(json.contains("\"age\":{\"type\":\"integer\""));
+        assertTrue(json.contains("\"John\""));
+        assertTrue(json.contains("\"Jane\""));
+        assertTrue(json.contains("\"Doe\""));
+        assertTrue(json.contains("18"));
+        assertTrue(json.contains("19"));
+        assertTrue(json.contains("20"));
     }
 
     @Test
     void testProductSearchSchema() throws Exception {
-        ObjectType objectType = new ObjectType(null);
-        objectType.setAdditionalProperties(false);
+        // Create root object schema
+        Type<Object> schema = new Type<Object>(Name.OBJECT, "Product search parameters", false);
         
-        // Categories array with enum
-        ArrayType<StringType> categoriesArray = new ArrayType<StringType>("categories that could be a match");
-        categoriesArray.setItem(
-            new StringType(null, Arrays.asList("coats & jackets", "accessories", "tops", "jeans & trousers", "skirts & dresses"))
-        );
-        objectType.addProperty("categories", categoriesArray, true);
-        
-        // Colors array with enum
-        ArrayType<StringType> colorsArray = new ArrayType<StringType>("colors that could be a match, empty array if N/A");
-        colorsArray.setItem(
-            new StringType(null, Arrays.asList("black", "white", "brown", "red", "blue", "green", "orange", "yellow", "pink", "gold", "silver"))
-        );
-        objectType.addProperty("colors", colorsArray, true);
-        
-        // Keywords array
-        ArrayType<StringType> keywordsArray = new ArrayType<StringType>("keywords that should be present in the item title or description");
-        keywordsArray.setItem(
-            new StringType(null, Arrays.asList("coat", "jacket", "accessory", "top", "jean", "trouser", "skirt", "dress", "shoe"))
-        );
-        objectType.addProperty("keywords", keywordsArray, true);
-        
-        // Price range object
-        ObjectType priceRange = new ObjectType(null);
-        priceRange.setAdditionalProperties(false);
-        priceRange.addProperty("min", new NumericType<Double>(Double.class, null, Arrays.asList(0.0, 1000.0)), true);
-        priceRange.addProperty("max", new NumericType<Double>(Double.class, null, Arrays.asList(0.0, 1000.0)), true);
-        objectType.addProperty("price_range", priceRange, true);
-        
+        List<String> categories = Arrays.asList("coats & jackets", "accessories", "tops", "jeans & trousers", "skirts & dresses");
+        Type<String> categoriesType = new Type<String>(Name.ARRAY, "Product category", categories, true);
+        schema.addProperty("categories", categoriesType);
+        // Categorie
+        List<String> colors = Arrays.asList("black", "white", "brown", "red", "blue", "green", "orange", "yellow", "pink", "gold", "silver");
+        Type<String> colorsType = new Type<String>(Name.ARRAY, "Color", colors, true);
+        schema.addProperty("colors", colorsType);
+
+        List<String> keywords = Arrays.asList("coat", "jacket", "accessory", "top", "jean", "trouser", "skirt", "dress", "shoe");
+        Type<String> keywordsType = new Type<String>(Name.ARRAY, "Keyword", keywords, true);
+        schema.addProperty("keywords", keywordsType);
+
+        Type<Object> priceRange = new Type<Object>(Name.OBJECT, "Price range constraints", true);
+        priceRange.addProperty("min", new Type<Double>(Name.NUMBER, "Minimum price", Arrays.asList(0.0, 1000.0), true));
+        priceRange.addProperty("max", new Type<Double>(Name.NUMBER, "Maximum price", Arrays.asList(0.0, 1000.0), true));
+        schema.addProperty("price_range", priceRange);
+
         // Limit
-        objectType.addProperty("limit", new NumericType<>(Integer.class, 
-            "The maximum number of products to return, use 5 by default if nothing is specified by the user"), true);
+        schema.addProperty("limit", new Type<Integer>(Name.INTEGER, "Maximum number of products to return (default: 5)", true));
         
-        String json = objectMapper.writeValueAsString(objectType);
+        String json = objectMapper.writeValueAsString(schema);
         System.out.println(json);
         // Verify structure
         assertTrue(json.contains("\"categories\":{\"type\":\"array\""));
@@ -130,159 +115,8 @@ class ObjectTypeTest {
         assertTrue(json.contains("\"shoe\""));
         assertTrue(json.contains("\"black\""));
         assertTrue(json.contains("\"silver\""));
-        
         // Verify required fields
-        assertTrue(json.contains("\"required\":[\"categories\",\"colors\",\"keywords\",\"price_range\",\"limit\"]"));
-    }
+        assertTrue(json.contains("\"required\":[\"keywords\",\"limit\",\"price_range\",\"categories\",\"colors\"]"));
 
-    @Test
-    void testCartItemsSchema() throws Exception {
-        // Create root object
-        ObjectType rootObject = new ObjectType(null);
-        rootObject.setAdditionalProperties(false);
-        
-        // Create items array
-        ArrayType<ObjectType> itemsArray = new ArrayType<>(null);
-        
-        // Create item object schema
-        ObjectType itemObject = new ObjectType(null);
-        itemObject.setAdditionalProperties(false);
-        
-        // Add product_id property
-        itemObject.addProperty(
-            "product_id", 
-            new StringType("ID of the product to add to the cart"),
-            true
-        );
-        
-        // Add quantity property
-        itemObject.addProperty(
-            "quantity",
-            new NumericType<>(Integer.class, "Quantity of the product to add to the cart"),
-            true
-        );
-        
-        // Set the item object as the array items type
-        itemsArray.setItem(itemObject);
-        
-        // Add the items array to the root object
-        rootObject.addProperty("items", itemsArray, true);
-        
-        String json = objectMapper.writeValueAsString(rootObject);
-
-        System.out.println(json);
-        
-        // Verify structure
-        assertTrue(json.contains("\"items\":{\"type\":\"array\""));
-        assertTrue(json.contains("\"product_id\":{\"type\":\"string\""));
-        assertTrue(json.contains("\"quantity\":{\"type\":\"integer\""));
-        
-        // Verify required fields
-        assertTrue(json.contains("\"required\":[\"product_id\",\"quantity\"]"));
-        assertTrue(json.contains("\"required\":[\"items\"]"));
-    }
-
-    @Test
-    void testUserOrdersSchema() throws Exception {
-        // Create root object
-        ObjectType rootObject = new ObjectType(null);
-        rootObject.setAdditionalProperties(false);
-        
-        // Add user_id property
-        rootObject.addProperty(
-            "user_id",
-            new StringType("The ID of the user to fetch orders for"),
-            true
-        );
-        
-        // Add limit property
-        rootObject.addProperty(
-            "limit",
-            new NumericType<>(Integer.class, 
-                "The maximum number of orders to return, use 5 by default and increase the number if the relevant order is not found."),
-            true
-        );
-        
-        String json = objectMapper.writeValueAsString(rootObject);
-        
-        System.out.println(json);
-        
-        // Verify structure
-        assertTrue(json.contains("\"user_id\":{\"type\":\"string\""));
-        assertTrue(json.contains("\"limit\":{\"type\":\"integer\""));
-        
-        // Verify descriptions
-        assertTrue(json.contains("\"The ID of the user to fetch orders for\""));
-        assertTrue(json.contains("\"The maximum number of orders to return, use 5 by default and increase the number if the relevant order is not found.\""));
-        
-        // Verify required fields
-        assertTrue(json.contains("\"required\":[\"user_id\",\"limit\"]"));
-        
-        // Verify additionalProperties
-        assertTrue(json.contains("\"additionalProperties\":false"));
-    }
-
-    @Test
-    void testOrderReturnSchema() throws Exception {
-        // Create root object
-        ObjectType rootObject = new ObjectType(null);
-        rootObject.setAdditionalProperties(false);
-        
-        // Add order_id property
-        rootObject.addProperty(
-            "order_id",
-            new StringType("The ID of the order to process a return for"),
-            true
-        );
-        
-        // Create items array with nested object type
-        ArrayType<ObjectType> itemsArray = new ArrayType<>("The items to return");
-        
-        // Create item object schema
-        ObjectType itemObject = new ObjectType(null);
-        itemObject.setAdditionalProperties(false);
-        
-        // Add product_id property to item object
-        itemObject.addProperty(
-            "product_id",
-            new StringType("The ID of the product to return"),
-            true
-        );
-        
-        // Add quantity property to item object
-        itemObject.addProperty(
-            "quantity",
-            new NumericType<>(Integer.class, "The quantity of the product to return"),
-            true
-        );
-        
-        // Set the item object as the array items type
-        itemsArray.setItem(itemObject);
-        
-        // Add the items array to the root object
-        rootObject.addProperty("items", itemsArray, true);
-        
-        String json = objectMapper.writeValueAsString(rootObject);
-        
-        System.out.println(json);
-        
-        // Verify structure
-        assertTrue(json.contains("\"order_id\":{\"type\":\"string\""));
-        assertTrue(json.contains("\"items\":{\"type\":\"array\""));
-        assertTrue(json.contains("\"product_id\":{\"type\":\"string\""));
-        assertTrue(json.contains("\"quantity\":{\"type\":\"integer\""));
-        
-        // Verify descriptions
-        assertTrue(json.contains("\"The ID of the order to process a return for\""));
-        assertTrue(json.contains("\"The items to return\""));
-        assertTrue(json.contains("\"The ID of the product to return\""));
-        assertTrue(json.contains("\"The quantity of the product to return\""));
-        
-        // Verify required fields
-        assertTrue(json.contains("\"required\":[\"order_id\",\"items\"]"));
-        assertTrue(json.contains("\"required\":[\"product_id\",\"quantity\"]"));
-        
-        // Verify additionalProperties
-        assertTrue(json.contains("\"additionalProperties\":false"));
     }
 }

@@ -10,7 +10,7 @@ public class Parameter {
     private String type;
 
     @JsonProperty("properties")
-    private Map<String, Type> properties;
+    private Map<String, Type<?>> properties;
 
     @JsonProperty("additionalProperties")
     private Boolean additionalProperties;
@@ -24,12 +24,12 @@ public class Parameter {
         this.type = type;
     }
 
-    public Map<String, Type> getProperties() {
+    public Map<String, Type<?>> getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String, Type> properties) {
-        this.properties = properties;
+    public void addProperty(String name, Type<?> value) {
+        properties.put(name, value);
     }
 
     public Boolean getAdditionalProperties() {
