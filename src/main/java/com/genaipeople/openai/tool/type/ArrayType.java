@@ -1,26 +1,17 @@
 package com.genaipeople.openai.tool.type;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-public class ArrayType<T extends Type> extends Type {
-
-    @JsonProperty("items")
-    private T item;
+@JsonSerialize(using = ArrayTypeSerializer.class)
+public class ArrayType extends Type {
+    private Class<?> itemType;
     
-    public ArrayType(String description) {
+    public ArrayType(Class<?> itemType, String description) {
         super("array", description);
+        this.itemType = itemType;
     }
 
-    public ArrayType(String description, T item) {
-        super("array", description);
-        this.item = item;
-    }
-
-    public T getItem() {
-        return item;
-    }
-
-    public void setItem(T item) {
-        this.item = item;
+    public Class<?> getItemType() {
+        return itemType;
     }
 }

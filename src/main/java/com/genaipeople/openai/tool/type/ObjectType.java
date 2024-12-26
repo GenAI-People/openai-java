@@ -17,6 +17,13 @@ public class ObjectType extends Type {
     @JsonProperty("additionalProperties")
     private Boolean additionalProperties;
 
+    public ObjectType() {
+        super("object", null);
+        this.requiredProperties = new ArrayList<>();
+        this.properties = new HashMap<String, Type>();
+        this.additionalProperties = false;
+    }
+
     public ObjectType(String description) {
         super("object", description);
         this.requiredProperties = new ArrayList<>();
