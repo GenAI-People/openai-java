@@ -1,5 +1,6 @@
 package com.genaipeople.openai.tool;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -16,10 +17,10 @@ import com.genaipeople.openai.tool.type.StringType;
 @JsonSerialize(using = FunctionSerializer.class)
 public class Function extends Tool{
     @JsonProperty("description")
-    private String description;
+    private String description = "";
 
     @JsonProperty("name")
-    private String name;
+    private String name = "";
 
     @JsonProperty("parameters")
     private ObjectType parameters;
@@ -90,7 +91,11 @@ public class Function extends Tool{
         }
         if (String.class.equals(type) || Date.class.equals(type) || java.sql.Date.class.equals(type)) {
             StringType stringType = new StringType(description);
-            stringType.setEnums(enumValues);
+            if(enumValues != null && !enumValues.isEmpty()){
+                stringType.setEnums(enumValues);
+            }else{
+                stringType.setEnums(Arrays.asList());
+            }
             this.parameters.addProperty(name, stringType, required);
             return;
         }
@@ -98,10 +103,20 @@ public class Function extends Tool{
             boolean isInteger = isIntegerType(type);
             if(isInteger){
                 NumericType<Integer> numericType = new NumericType<Integer>("integer", description);
+                if(enumValues != null && !enumValues.isEmpty()){
+                    numericType.setEnums(enumValues);
+                }else{
+                    numericType.setEnums(Arrays.asList());
+                }
                 this.parameters.addProperty(name, numericType, required);
             } else {
                 NumericType<Double> numericType = new NumericType<Double>("number", description);
                 this.parameters.addProperty(name, numericType, required);
+                if(enumValues != null && !enumValues.isEmpty()){
+                    numericType.setEnums(enumValues);
+                }else{
+                    numericType.setEnums(Arrays.asList());
+                }
             }
             return;
         }

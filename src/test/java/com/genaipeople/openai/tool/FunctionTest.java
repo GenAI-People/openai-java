@@ -105,7 +105,9 @@ public class FunctionTest {
 
             @PropertyDetails(description = "The items to return")
             public List<Item> products;
-            
+
+            @PropertyDetails(description = "The product to return")
+            public Item product;
         }.getClass(), "price_range", "price range of the products to search for", null, true);
 
         // ... rest of the test ...
@@ -118,6 +120,8 @@ public class FunctionTest {
         assertTrue(json.contains("\"description\":\"Searches for products matching certain criteria in the database\""));
         assertTrue(json.contains("\"type\":\"object\""));
         assertTrue(json.contains("\"price_range\""));
+        assertTrue(json.contains("\"products\""));
+        assertTrue(json.contains("\"product\""));
     }
 
     @Test

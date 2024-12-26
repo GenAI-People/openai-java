@@ -1,4 +1,4 @@
-package com.genaipeople.openai.assistant;
+package com.genaipeople.openai;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

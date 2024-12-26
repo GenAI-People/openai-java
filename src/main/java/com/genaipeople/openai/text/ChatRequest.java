@@ -6,6 +6,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.genaipeople.openai.message.Message;
+import com.genaipeople.openai.tool.Tool;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChatRequest {
@@ -61,10 +62,10 @@ public class ChatRequest {
     private Double topP;
 
     @JsonProperty("tools")
-    private List<Object> tools;
+    private List<Tool> tools;
 
     @JsonProperty("tool_choice")
-    private Object toolChoice;
+    private String toolChoice;
 
     @JsonProperty("parallel_tool_calls")
     private Boolean parallelToolCalls;
@@ -214,20 +215,20 @@ public class ChatRequest {
         this.topP = topP;
     }
 
-    public List<Object> getTools() {
+    public List<Tool> getTools() {
         return tools;
     }
 
-    public void setTools(List<Object> tools) {
+    public void setTools(List<Tool> tools) {
         this.tools = tools;
     }
 
-    public Object getToolChoice() {
+    public String getToolChoice() {
         return toolChoice;
     }
 
-    public void setToolChoice(Object toolChoice) {
-        this.toolChoice = toolChoice;
+    public void setToolChoice(ToolChoice toolChoice) {
+        this.toolChoice = toolChoice.getValue();
     }
 
     public Boolean getParallelToolCalls() {

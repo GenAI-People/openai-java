@@ -15,6 +15,11 @@ public class SchemaGenerator {
         ObjectType schema = new ObjectType();
         
         for (Field field : clazz.getDeclaredFields()) {
+            // Skip synthetic fields (like this$0 in anonymous classes)
+            if (field.isSynthetic()) {
+                continue;
+            }
+            
             JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
             String propertyName = (jsonProperty != null) ? jsonProperty.value() : field.getName();
             
@@ -37,9 +42,11 @@ public class SchemaGenerator {
             type = field.getType();
             PropertyDetails propertyDetails = field.getAnnotation(PropertyDetails.class);
             if(propertyDetails != null){
-                description = propertyDetails.description();
-                if(propertyDetails.enumValues().length > 0){
+                description = propertyDetails.description() != null ? propertyDetails.description() : getDescription(field);
+                if(propertyDetails.enumValues() != null && propertyDetails.enumValues().length > 0){
                     enumValues = Arrays.asList(propertyDetails.enumValues());
+                }else{
+                    enumValues = Arrays.asList();
                 }
             } else {
                 description = getDescription(field);
@@ -55,6 +62,8 @@ public class SchemaGenerator {
             StringType stringType = new StringType(description);
             if (enumValues != null) {
                 stringType.setEnums(enumValues);
+            }else{
+                stringType.setEnums(Arrays.asList());
             }
             return stringType;
         }
@@ -66,12 +75,16 @@ public class SchemaGenerator {
                 NumericType<Integer> numericTypeValue = new NumericType<Integer>(numericType, description);
                 if(enumValues != null){
                     numericTypeValue.setEnums(enumValues);
+                }else{
+                    numericTypeValue.setEnums(Arrays.asList());
                 }
                 return numericTypeValue;
             } else {
                 NumericType<Double> numericTypeValue = new NumericType<Double>(numericType, description);
                 if(enumValues != null){
                     numericTypeValue.setEnums(enumValues);
+                }else{
+                    numericTypeValue.setEnums(Arrays.asList());
                 }
                 return numericTypeValue;
             }
@@ -85,9 +98,9 @@ public class SchemaGenerator {
                 return new ArrayType(itemSchema.getType(), description);
             }
         }
-        
-        
-        return null;
+        ObjectType objectType = generateSchema(type);
+        objectType.setDescription(description);
+        return objectType;
     }
     
     private static boolean isNumericPrimitive(Class<?> type) {

@@ -79,5 +79,9 @@ public class Message {
     public String getRefusal() {
         return refusal;
     }
+
+    public List<ToolCall> getToolCalls() {
+        return toolCalls;
+    }
 }
 

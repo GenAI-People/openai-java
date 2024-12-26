@@ -1,5 +1,6 @@
 package com.genaipeople.openai.tool.type;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,14 +10,14 @@ public abstract class Type {
     private String type;
 
     @JsonProperty("description")
-    private String description;
+    private String description = "";
 
     @JsonProperty("enum")
-    protected List<? extends Object> enums;
+    protected List<? extends Object> enums = Arrays.asList();
 
     public Type(String type, String description) {
         this.type = type;
-        this.description = description;
+        this.description = description != null ? description : "";
     }
 
     public String getDescription() {
