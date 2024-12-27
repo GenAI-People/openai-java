@@ -33,7 +33,7 @@ public class FunctionChatTest {
 
     @Test
     public void testFunctionCallToCheckWeather() {
-        List<Message> messages = Arrays.asList(new Message("What'\\''s the weather like in Boston today?", Role.USER));
+        List<Message> messages = Arrays.asList(new Message("What'\\''s the weather like in Boston today?", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         Function function = new Function("get_current_weather", "Get the current weather in a given location");
         function.addParameter(String.class, "location", "The city and state, e.g. San Francisco, CA", null, true);
@@ -65,7 +65,7 @@ public class FunctionChatTest {
 
     @Test
     public void testProductRecommendationsFunction() throws Exception {
-        List<Message> messages = Arrays.asList(new Message("List out all the red shoes that are within 5$ to 10$?", Role.USER));
+        List<Message> messages = Arrays.asList(new Message("List out all the red shoes that are within 5$ to 10$?", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         request.setTools(Arrays.asList(getProductRecommendationsFunction()));
         request.setToolChoice(ToolChoice.AUTO);
@@ -91,7 +91,7 @@ public class FunctionChatTest {
 
     @Test
     public void testProductRecommendationsOrDetailsFunction() throws Exception {
-        List<Message> messages = Arrays.asList(new Message("Please provide me the details of the Macbook Pro that i purchased. The product id is 1234", Role.USER));
+        List<Message> messages = Arrays.asList(new Message("Please provide me the details of the Macbook Pro that i purchased. The product id is 1234", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         request.setTools(Arrays.asList(getProductRecommendationsFunction(), getProductDetailsFunction()));
         request.setToolChoice(ToolChoice.AUTO);
@@ -117,10 +117,10 @@ public class FunctionChatTest {
 
     @Test
     public void testProductRecommendationsForPriceRangeFunction() throws Exception {
-        List<Message> messages = Arrays.asList(new Message("Recommend a pair of red shoes that are within the price range of minimum 5$ to maximum 10$. Show me the details of the product and present me with 5 different options", Role.USER));
+        List<Message> messages = Arrays.asList(new Message("Recommend a pair of red shoes that are within the price range of minimum 5$ to maximum 10$. Show me the details of the product and present me with 5 different options", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         request.setTools(Arrays.asList(getProductRecommendationsFunction(), getProductDetailsFunction()));
-        request.setToolChoice(ToolChoice.AUTO);
+        request.setToolChoice(ToolChoice.auto);
         try {
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
             ChatResponse actualResponse = futureResponse.get();

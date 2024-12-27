@@ -9,13 +9,13 @@ public class CompletionTokensDetails {
     private Integer reasoningTokens;
 
     @JsonProperty("audio_tokens")
-    private int audioTokens;
+    private Integer audioTokens;
 
     @JsonProperty("accepted_prediction_tokens")
-    private int acceptedPredictionTokens;
+    private Integer acceptedPredictionTokens;
 
     @JsonProperty("rejected_prediction_tokens")
-    private int rejectedPredictionTokens;
+    private Integer rejectedPredictionTokens;
 
     public Integer getReasoningTokens() {
         return reasoningTokens;
@@ -25,27 +25,27 @@ public class CompletionTokensDetails {
         this.reasoningTokens = reasoningTokens;
     }
 
-    public int getAudioTokens() {
+    public Integer getAudioTokens() {
         return audioTokens;
     }
 
-    public void setAudioTokens(int audioTokens) {
+    public void setAudioTokens(Integer audioTokens) {
         this.audioTokens = audioTokens;
     }
 
-    public int getAcceptedPredictionTokens() {
+    public Integer getAcceptedPredictionTokens() {
         return acceptedPredictionTokens;
     }
 
-    public void setAcceptedPredictionTokens(int acceptedPredictionTokens) {
+    public void setAcceptedPredictionTokens(Integer acceptedPredictionTokens) {
         this.acceptedPredictionTokens = acceptedPredictionTokens;
     }
 
-    public int getRejectedPredictionTokens() {
+    public Integer getRejectedPredictionTokens() {
         return rejectedPredictionTokens;
     }
 
-    public void setRejectedPredictionTokens(int rejectedPredictionTokens) {
+    public void setRejectedPredictionTokens(Integer rejectedPredictionTokens) {
         this.rejectedPredictionTokens = rejectedPredictionTokens;
     }
 }

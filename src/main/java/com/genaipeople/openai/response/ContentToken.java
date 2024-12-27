@@ -9,39 +9,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ContentToken {
     @JsonProperty("token")
     private String token;
-
+    
     @JsonProperty("logprob")
     private double logprob;
-
+    
     @JsonProperty("bytes")
     private List<Integer> bytes;
-
+    
     @JsonProperty("top_logprobs")
     private List<ContentToken> topLogprobs;
+
+    public ContentToken() {}
+
+    public ContentToken(String token, double logprob, List<Integer> bytes) {
+        this.token = token;
+        this.logprob = logprob;
+        this.bytes = bytes;
+    }
 
     // Getters and setters
     public String getToken() {
         return token;
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
     public double getLogprob() {
         return logprob;
     }
 
-    public void setLogprob(double logprob) {
-        this.logprob = logprob;
-    }
-
     public List<Integer> getBytes() {
         return bytes;
-    }
-
-    public void setBytes(List<Integer> bytes) {
-        this.bytes = bytes;
     }
 
     public List<ContentToken> getTopLogprobs() {
