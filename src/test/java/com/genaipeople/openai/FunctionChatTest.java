@@ -41,7 +41,7 @@ public class FunctionChatTest {
             Arrays.asList("celsius", "fahrenheit"), false);
 
         request.setTools(Arrays.asList(function));
-        request.setToolChoice(ToolChoice.AUTO);
+        request.setToolChoice(ToolChoice.auto);
         try {
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
             ChatResponse actualResponse = futureResponse.get();
@@ -68,7 +68,7 @@ public class FunctionChatTest {
         List<Message> messages = Arrays.asList(new Message("List out all the red shoes that are within 5$ to 10$?", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         request.setTools(Arrays.asList(getProductRecommendationsFunction()));
-        request.setToolChoice(ToolChoice.AUTO);
+        request.setToolChoice(ToolChoice.auto);
         try {
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
             ChatResponse actualResponse = futureResponse.get();
@@ -94,7 +94,7 @@ public class FunctionChatTest {
         List<Message> messages = Arrays.asList(new Message("Please provide me the details of the Macbook Pro that i purchased. The product id is 1234", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         request.setTools(Arrays.asList(getProductRecommendationsFunction(), getProductDetailsFunction()));
-        request.setToolChoice(ToolChoice.AUTO);
+        request.setToolChoice(ToolChoice.auto);
         try {
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
             ChatResponse actualResponse = futureResponse.get();

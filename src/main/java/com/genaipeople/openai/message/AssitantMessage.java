@@ -5,7 +5,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.genaipeople.openai.Role;
-import com.genaipeople.openai.assistant.ToolCall;
+import com.genaipeople.openai.response.ToolCall;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AssitantMessage extends Message {
@@ -16,11 +16,11 @@ public class AssitantMessage extends Message {
     private List<ToolCall> toolCalls;
     
     public AssitantMessage() {
-        super(null, Role.ASSISTANT);
+        super(null, Role.assistant);
     }
 
     public AssitantMessage(String content) {
-        super(content, Role.ASSISTANT);
+        super(content, Role.assistant);
     }
 
     // Getters
