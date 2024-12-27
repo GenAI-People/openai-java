@@ -40,12 +40,10 @@ public class RestClient {
                     break;
                 case POST:
                     String jsonBody = objectMapper.writeValueAsString(requestBody);
-                    System.out.println("Request Body: " + jsonBody);
                     requestBuilder.POST(HttpRequest.BodyPublishers.ofString(jsonBody));
                     break;
                 case PUT:
                     jsonBody = objectMapper.writeValueAsString(requestBody);
-                    System.out.println("Request Body: " + jsonBody);
                     requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(jsonBody));
                     break;
                 case DELETE:

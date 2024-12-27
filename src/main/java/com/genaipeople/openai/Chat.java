@@ -29,7 +29,6 @@ public class Chat {
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                System.out.println("Response: " + responseString);
                 return CompletableFuture.completedFuture(stringToChatResponse(responseString));
             } catch (InterruptedException e) {
                 return CompletableFuture.failedFuture(new RuntimeException("Request interrupted", e));
@@ -62,7 +61,6 @@ public class Chat {
 
                 @Override
                 public void onComplete() {
-                    System.out.println("Stream completed in Chat");
                     publisher.close();
                 }
             });
