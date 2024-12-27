@@ -4,8 +4,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genaipeople.openai.response.Choice;
 import com.genaipeople.openai.response.Usage;
 
@@ -87,11 +85,5 @@ public class ChatResponse {
 
     public void setUsage(Usage usage) {
         this.usage = usage;
-    }
-
-    // New static method to convert JSON string to ChatResponse object
-    public static ChatResponse fromJson(String json) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(json, ChatResponse.class);
     }
 }

@@ -1,5 +1,7 @@
 package com.genaipeople.openai.message;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -9,6 +11,7 @@ import com.genaipeople.openai.message.content.ContentDeserializer;
 import com.genaipeople.openai.message.content.ContentSerializer;
 import com.genaipeople.openai.message.content.ImageContent;
 import com.genaipeople.openai.message.content.TextContent;
+import com.genaipeople.openai.response.ToolCall;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
@@ -23,8 +26,11 @@ public class Message {
     @JsonProperty("name")
     private String name; // optional
 
-    @JsonProperty("refusal")
+    @JsonProperty("refusal")    
     private String refusal;
+
+    @JsonProperty("tool_calls")
+    private List<ToolCall> toolCalls;
 
     public Message(String content, Role role) {
         this.role = role;
@@ -72,6 +78,10 @@ public class Message {
 
     public String getRefusal() {
         return refusal;
+    }
+
+    public List<ToolCall> getToolCalls() {
+        return toolCalls;
     }
 }
 

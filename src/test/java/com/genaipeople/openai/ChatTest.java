@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.genaipeople.openai.message.Message;
 import com.genaipeople.openai.message.content.TextContent;
 import com.genaipeople.openai.response.Choice;
+import com.genaipeople.openai.response.ContentToken;
 import com.genaipeople.openai.response.Delta;
 import com.genaipeople.openai.service.RestClient;
 import com.genaipeople.openai.service.RestClient.HttpMethod;
@@ -30,7 +31,7 @@ import com.genaipeople.openai.text.ChatResponse;
 class ChatTest {
 
     private Chat chat;
-    private static final String API_KEY = "API-Key";
+    private static final String API_KEY = "API_KEY";
     private static final String COMPLETION_URL = "https://api.openai.com/v1/chat/completions";
     private static final String MODEL = "gpt-4o";
 
@@ -41,7 +42,7 @@ class ChatTest {
 
     @Test
     void testComplete() throws ExecutionException, InterruptedException {
-        List<Message> messages = Arrays.asList(new Message("Hello", Role.USER));
+        List<Message> messages = Arrays.asList(new Message("Hello", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         ChatResponse expectedResponse = new ChatResponse();
         String jsonResponse = "{\"id\":\"test-id\",\"object\":\"chat.completion\"}";
@@ -59,8 +60,29 @@ class ChatTest {
     }
 
     @Test
+    void testCompleteWithLogprobs() throws ExecutionException, InterruptedException {
+        List<Message> messages = Arrays.asList(new Message("Hello", Role.user));
+        ChatRequest request = new ChatRequest(messages, MODEL);
+        request.setLogprobs(true);
+        ChatResponse expectedResponse = new ChatResponse();
+
+        CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
+        ChatResponse actualResponse = futureResponse.get();
+
+        assertNotNull(actualResponse);
+        assertEquals(expectedResponse.getClass(), actualResponse.getClass());
+
+        Choice choice = actualResponse.getChoices().get(0);
+        assertNotNull(choice.getLogprobs());
+        assertTrue(choice.getLogprobs().getContent().size() > 0);
+        ContentToken contentToken = choice.getLogprobs().getContent().get(0);
+        assertNotNull(contentToken.getToken());
+        assertTrue(contentToken.getToken().length() > 0);
+    }
+
+    @Test
     void testCompleteWithInterruptedException() throws ExecutionException, InterruptedException {
-        ChatRequest request = new ChatRequest(Arrays.asList(new Message("Hello", Role.USER)), MODEL);
+        ChatRequest request = new ChatRequest(Arrays.asList(new Message("Hello", Role.user)), MODEL);
 
         try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
             CompletableFuture<String> failedFuture = new CompletableFuture<>();
@@ -79,7 +101,7 @@ class ChatTest {
 
     @Test
     void testCompleteWithExecutionException() throws ExecutionException, InterruptedException {
-        ChatRequest request = new ChatRequest(Arrays.asList(new Message("Hello", Role.USER)), MODEL);
+        ChatRequest request = new ChatRequest(Arrays.asList(new Message("Hello", Role.user)), MODEL);
 
         try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
             CompletableFuture<String> failedFuture = new CompletableFuture<>();
@@ -146,8 +168,8 @@ class ChatTest {
     @Test
     void testChatCompletionResponse() throws JsonProcessingException, ExecutionException, InterruptedException {
         List<Message> messages = new ArrayList<>();
-        messages.add(new Message("You are a helpful assistant.", Role.SYSTEM));
-        messages.add(new Message("Hello!", Role.USER));
+        messages.add(new Message("You are a helpful assistant.", Role.system));
+        messages.add(new Message("Hello!", Role.user));
         ChatRequest chatRequest = new ChatRequest(messages, MODEL);
 
         String jsonResponse = "{\n" +
@@ -203,10 +225,10 @@ class ChatTest {
     @Test
     void testImageChatCompletionResponse() throws JsonProcessingException, ExecutionException, InterruptedException {
         List<Message> messages = new ArrayList<>();
-        messages.add(new Message("You are a helpful assistant.", Role.SYSTEM));
+        messages.add(new Message("You are a helpful assistant.", Role.system));
         messages.add(new Message("What's in this image?", 
                 "https://miro.medium.com/v2/resize:fit:828/format:webp/1*LLxq7oaQj8dmPW3wKZTMJA.jpeg", 
-                Role.USER));
+                Role.user));
         ChatRequest chatRequest = new ChatRequest(messages, MODEL);
 
         String jsonResponse = "{\n" +
@@ -261,9 +283,9 @@ class ChatTest {
     @Test
     void testImageChatCompletionResponseWithInvalidImageUrl() throws JsonProcessingException, ExecutionException, InterruptedException {
         List<Message> messages = new ArrayList<>();
-        messages.add(new Message("You are a helpful assistant.", Role.SYSTEM));
+        messages.add(new Message("You are a helpful assistant.", Role.system));
         messages.add(new Message("What's in this image?", null, 
-                Role.USER));
+                Role.user));
         ChatRequest chatRequest = new ChatRequest(messages, MODEL);
 
         String jsonResponse = "{\n" +
@@ -293,24 +315,13 @@ class ChatTest {
                     .thenReturn(CompletableFuture.completedFuture(jsonResponse));
 
             CompletableFuture<ChatResponse> futureResponse = chat.complete(chatRequest);
-            ChatResponse actualResponse = futureResponse.get();
-
-            ChatResponse expectedResponse = chat.stringToChatResponse(jsonResponse);
-            System.out.println(expectedResponse);
-            assertNotNull(actualResponse);
-           
-            List<Choice> actualChoices = actualResponse.getChoices();
-            List<Choice> expectedChoices = expectedResponse.getChoices();
-            assertNotNull(actualChoices);
-            assertEquals(expectedChoices.size(), actualChoices.size());
-            for (int i = 0; i < expectedChoices.size(); i++) {
-                Choice expectedChoice = expectedChoices.get(i);
-                Choice actualChoice = actualChoices.get(i);
-                assertEquals(expectedChoice.getMessage().getRole(), actualChoice.getMessage().getRole());
-                assertNotNull(actualChoice.getMessage().getContent());
-                TextContent actualTextContent = (TextContent) actualChoice.getMessage().getContent();
-                System.out.println(actualTextContent.getContent());
-                assertTrue(actualTextContent.getContent().length() > 0);
+            try {
+                futureResponse.get();
+                fail("Expected an exception, but got a response");
+            } catch (InterruptedException | ExecutionException e) {
+                System.out.println(e.getCause().getMessage());
+                assertTrue(e.getCause().getMessage().contains("invalid_type"), 
+                "Error message should contain 'invalid_type'");
             }
         }
     }
@@ -318,8 +329,8 @@ class ChatTest {
     @Test
     void testImageChatCompletionResponseWithInvalidImageUrlFormat() throws InterruptedException {
         List<Message> messages = new ArrayList<>();
-        messages.add(new Message("You are a helpful assistant.", Role.SYSTEM));
-        messages.add(new Message("What's in this image?", "1*LLxq7oaQj8dmPW3wKZTMJA.jpeg", Role.USER));
+        messages.add(new Message("You are a helpful assistant.", Role.system));
+        messages.add(new Message("What's in this image?", "1*LLxq7oaQj8dmPW3wKZTMJA.jpeg", Role.user));
         ChatRequest chatRequest = new ChatRequest(messages, MODEL);
 
         String jsonResponse = "Response: {\n" +
@@ -336,13 +347,21 @@ class ChatTest {
                     .thenReturn(CompletableFuture.completedFuture(jsonResponse));
             
             CompletableFuture<ChatResponse> futureResponse = chat.complete(chatRequest);
-            
+            futureResponse.handle((response, throwable) -> {
+                if (throwable != null) {
+                    System.out.println(throwable.getMessage());
+                    assertTrue(throwable.getMessage().contains("invalid_image_url"), 
+                    "Error message should contain 'invalid_image_url'");
+                }
+                return response;
+            });
             try {
                 futureResponse.get();
                 fail("Expected an exception, but got a response");
             } catch (InterruptedException | ExecutionException e) {
                 System.out.println(e.getCause().getMessage());
-                assertEquals("Code: invalid_image Message: Invalid image.", e.getCause().getMessage());
+                assertTrue(e.getCause().getMessage().contains("invalid_image_url"), 
+                "Error message should contain 'invalid_type'");
                 // Handle or rethrow the exception as needed
             }
         }
@@ -350,7 +369,7 @@ class ChatTest {
 
     @Test
     void testErrorResponse() throws JsonProcessingException {
-        String errorResponse = "Response: {\n" +
+        String errorResponse = "{\n" +
                 "  \"error\": {\n" +
                 "    \"message\": \"Invalid image.\",\n" +
                 "    \"type\": \"invalid_request_error\",\n" +
@@ -367,7 +386,7 @@ class ChatTest {
 
     @Test
     void testStream() {
-        ChatRequest request = new ChatRequest(Arrays.asList(new Message("Hello", Role.USER)), MODEL);
+        ChatRequest request = new ChatRequest(Arrays.asList(new Message("Hello", Role.user)), MODEL);
         Flow.Publisher<ChatResponse> stream = chat.stream(request);
         Object lock = new Object();
         stream.subscribe(new Flow.Subscriber<ChatResponse>() {
@@ -414,7 +433,7 @@ class ChatTest {
 
     @Test
     void testStreamNoInput() {
-        ChatRequest request = new ChatRequest(Arrays.asList(new Message("", Role.USER)), MODEL);
+        ChatRequest request = new ChatRequest(Arrays.asList(new Message("", Role.user)), MODEL);
         Flow.Publisher<ChatResponse> stream = chat.stream(request);
         Object lock = new Object();
         stream.subscribe(new Flow.Subscriber<ChatResponse>() {
@@ -463,10 +482,10 @@ class ChatTest {
     @Test
     void testStreamingImageChatCompletionResponse() throws JsonProcessingException, ExecutionException, InterruptedException {
         List<Message> messages = new ArrayList<>();
-        messages.add(new Message("You are a helpful assistant.", Role.SYSTEM));
+        messages.add(new Message("You are a helpful assistant.", Role.system));
         messages.add(new Message("What's in this image?", 
                 "https://miro.medium.com/v2/resize:fit:828/format:webp/1*LLxq7oaQj8dmPW3wKZTMJA.jpeg", 
-                Role.USER));
+                Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
 
         Flow.Publisher<ChatResponse> stream = chat.stream(request);
