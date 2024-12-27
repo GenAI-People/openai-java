@@ -227,8 +227,8 @@ public class ChatRequest {
         return toolChoice;
     }
 
-    public void setToolChoice(ToolChoice toolChoice) {
-        this.toolChoice = toolChoice.getValue();
+    public void setToolChoice(String toolChoice) {
+        this.toolChoice = toolChoice;
     }
 
     public Boolean getParallelToolCalls() {

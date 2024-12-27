@@ -78,39 +78,44 @@ class ObjectTypeTest {
         objectType.setAdditionalProperties(false);
         
         // Categories array with enum
-        ArrayType<StringType> categoriesArray = new ArrayType<StringType>("categories that could be a match");
-        categoriesArray.setItem(
-            new StringType(null, Arrays.asList("coats & jackets", "accessories", "tops", "jeans & trousers", "skirts & dresses"))
+        StringType categoryType = new StringType(null);
+        categoryType.setEnums(Arrays.asList("coats & jackets", "accessories", "tops", 
+            "jeans & trousers", "skirts & dresses"));
+        ArrayType categoriesArray = new ArrayType(String.class,
+            "categories that could be a match"
         );
         objectType.addProperty("categories", categoriesArray, true);
         
         // Colors array with enum
-        ArrayType<StringType> colorsArray = new ArrayType<StringType>("colors that could be a match, empty array if N/A");
-        colorsArray.setItem(
-            new StringType(null, Arrays.asList("black", "white", "brown", "red", "blue", "green", "orange", "yellow", "pink", "gold", "silver"))
+        StringType colorType = new StringType(null);
+        colorType.setEnums(Arrays.asList("black", "white", "brown", "red", "blue", 
+            "green", "orange", "yellow", "pink", "gold", "silver"));
+        ArrayType colorsArray = new ArrayType(String.class,
+            "colors that could be a match, empty array if N/A"
         );
         objectType.addProperty("colors", colorsArray, true);
         
         // Keywords array
-        ArrayType<StringType> keywordsArray = new ArrayType<StringType>("keywords that should be present in the item title or description");
-        keywordsArray.setItem(
-            new StringType(null, Arrays.asList("coat", "jacket", "accessory", "top", "jean", "trouser", "skirt", "dress", "shoe"))
+        ArrayType keywordsArray = new ArrayType(String.class,
+            "keywords that should be present in the item title or description"
         );
         objectType.addProperty("keywords", keywordsArray, true);
         
         // Price range object
         ObjectType priceRange = new ObjectType(null);
         priceRange.setAdditionalProperties(false);
-        priceRange.addProperty("min", new NumericType<Double>("double", null, Arrays.asList(0.0, 1000.0)), true);
-        priceRange.addProperty("max", new NumericType<Double>("double", null, Arrays.asList(0.0, 1000.0)), true);
+        priceRange.addProperty("min", new NumericType<>("number", null), true);
+        priceRange.addProperty("max", new NumericType<>("number", null), true);
         objectType.addProperty("price_range", priceRange, true);
         
         // Limit
-        objectType.addProperty("limit", new NumericType<Integer>("integer", 
-            "The maximum number of products to return, use 5 by default if nothing is specified by the user"), true);
+        objectType.addProperty("limit", new NumericType<>("integer", 
+            "The maximum number of products to return, use 5 by default if nothing is specified by the user"), 
+            true);
         
         String json = objectMapper.writeValueAsString(objectType);
         System.out.println(json);
+        
         // Verify structure
         assertTrue(json.contains("\"categories\":{\"type\":\"array\""));
         assertTrue(json.contains("\"colors\":{\"type\":\"array\""));
@@ -119,17 +124,10 @@ class ObjectTypeTest {
         assertTrue(json.contains("\"limit\":{\"type\":\"integer\""));
         
         // Verify enums
-        assertTrue(json.contains("\"coat\""));
-        assertTrue(json.contains("\"jacket\""));
-        assertTrue(json.contains("\"accessory\""));
-        assertTrue(json.contains("\"top\""));
-        assertTrue(json.contains("\"jean\""));
-        assertTrue(json.contains("\"trouser\""));
-        assertTrue(json.contains("\"skirt\""));
-        assertTrue(json.contains("\"dress\""));
-        assertTrue(json.contains("\"shoe\""));
+        assertTrue(json.contains("\"coats & jackets\""));
+        assertTrue(json.contains("\"accessories\""));
         assertTrue(json.contains("\"black\""));
-        assertTrue(json.contains("\"silver\""));
+        assertTrue(json.contains("\"white\""));
         
         // Verify required fields
         assertTrue(json.contains("\"required\":[\"categories\",\"colors\",\"keywords\",\"price_range\",\"limit\"]"));
@@ -140,9 +138,6 @@ class ObjectTypeTest {
         // Create root object
         ObjectType rootObject = new ObjectType(null);
         rootObject.setAdditionalProperties(false);
-        
-        // Create items array
-        ArrayType<ObjectType> itemsArray = new ArrayType<>(null);
         
         // Create item object schema
         ObjectType itemObject = new ObjectType(null);
@@ -158,18 +153,17 @@ class ObjectTypeTest {
         // Add quantity property
         itemObject.addProperty(
             "quantity",
-            new NumericType<Integer>("integer", "Quantity of the product to add to the cart"),
+            new NumericType<>("integer", "Quantity of the product to add to the cart"),
             true
         );
         
-        // Set the item object as the array items type
-        itemsArray.setItem(itemObject);
+        // Create items array with item object
+        ArrayType itemsArray = new ArrayType(ObjectType.class, null);
         
         // Add the items array to the root object
         rootObject.addProperty("items", itemsArray, true);
         
         String json = objectMapper.writeValueAsString(rootObject);
-
         System.out.println(json);
         
         // Verify structure

@@ -6,7 +6,7 @@ public class ToolMessage extends Message {
     private String toolCallId;
 
     public ToolMessage(String content, String toolCallId) {
-        super(content, Role.TOOL);
+        super(content, Role.tool);
         this.toolCallId = toolCallId;
     }
 

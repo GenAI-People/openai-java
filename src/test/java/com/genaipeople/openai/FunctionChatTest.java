@@ -41,7 +41,7 @@ public class FunctionChatTest {
             Arrays.asList("celsius", "fahrenheit"), false);
 
         request.setTools(Arrays.asList(function));
-        request.setToolChoice(ToolChoice.auto);
+        request.setToolChoice(ToolChoice.auto.toString());
         try {
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
             ChatResponse actualResponse = futureResponse.get();
@@ -49,7 +49,7 @@ public class FunctionChatTest {
             for(Choice choice : actualResponse.getChoices()){
                 for(ToolCall toolCall : choice.getMessage().getToolCalls()){
                     com.genaipeople.openai.response.Function responseFunction = 
-                        (com.genaipeople.openai.response.Function) toolCall.geFunction();
+                        (com.genaipeople.openai.response.Function) toolCall.getFunction();
                     assertTrue(responseFunction.getName().equals("get_current_weather"));
                     assertTrue(responseFunction.getArguments().contains("\"location\""));
                 }
@@ -68,7 +68,7 @@ public class FunctionChatTest {
         List<Message> messages = Arrays.asList(new Message("List out all the red shoes that are within 5$ to 10$?", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         request.setTools(Arrays.asList(getProductRecommendationsFunction()));
-        request.setToolChoice(ToolChoice.auto);
+        request.setToolChoice(ToolChoice.auto.toString());
         try {
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
             ChatResponse actualResponse = futureResponse.get();
@@ -76,7 +76,7 @@ public class FunctionChatTest {
                 assertEquals(choice.getFinishReason(), FinishReason.tool_calls.toString());
                 for(ToolCall toolCall : choice.getMessage().getToolCalls()){
                     com.genaipeople.openai.response.Function responseFunction = 
-                        (com.genaipeople.openai.response.Function) toolCall.geFunction();
+                        (com.genaipeople.openai.response.Function) toolCall.getFunction();
                     assertTrue(responseFunction.getName().equals("get_product_recommendations"));
                     assertTrue(responseFunction.getArguments().contains("\"shoes\""));
                     assertTrue(responseFunction.getArguments().contains("\"red\""));
@@ -94,7 +94,7 @@ public class FunctionChatTest {
         List<Message> messages = Arrays.asList(new Message("Please provide me the details of the Macbook Pro that i purchased. The product id is 1234", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         request.setTools(Arrays.asList(getProductRecommendationsFunction(), getProductDetailsFunction()));
-        request.setToolChoice(ToolChoice.auto);
+        request.setToolChoice(ToolChoice.auto.toString());
         try {
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
             ChatResponse actualResponse = futureResponse.get();
@@ -102,7 +102,7 @@ public class FunctionChatTest {
                 assertEquals(choice.getFinishReason(), FinishReason.tool_calls.toString());
                 for(ToolCall toolCall : choice.getMessage().getToolCalls()){
                     com.genaipeople.openai.response.Function responseFunction = 
-                        (com.genaipeople.openai.response.Function) toolCall.geFunction();
+                        (com.genaipeople.openai.response.Function) toolCall.getFunction();
                     assertTrue(responseFunction.getName().equals("get_product_details"));
                     assertTrue(responseFunction.getArguments().contains("\"product_id\""));
                     assertTrue(responseFunction.getArguments().contains("\"1234\""));
@@ -120,7 +120,7 @@ public class FunctionChatTest {
         List<Message> messages = Arrays.asList(new Message("Recommend a pair of red shoes that are within the price range of minimum 5$ to maximum 10$. Show me the details of the product and present me with 5 different options", Role.user));
         ChatRequest request = new ChatRequest(messages, MODEL);
         request.setTools(Arrays.asList(getProductRecommendationsFunction(), getProductDetailsFunction()));
-        request.setToolChoice(ToolChoice.auto);
+        request.setToolChoice(ToolChoice.auto.toString());
         try {
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
             ChatResponse actualResponse = futureResponse.get();
@@ -128,7 +128,7 @@ public class FunctionChatTest {
                 assertEquals(choice.getFinishReason(), FinishReason.tool_calls.toString());
                 for(ToolCall toolCall : choice.getMessage().getToolCalls()){
                     com.genaipeople.openai.response.Function responseFunction = 
-                        (com.genaipeople.openai.response.Function) toolCall.geFunction();
+                        (com.genaipeople.openai.response.Function) toolCall.getFunction();
                     assertTrue(responseFunction.getName().equals("get_product_recommendations"));
                     assertTrue(responseFunction.getArguments().contains("\"price_range\""));
                     assertTrue(responseFunction.getArguments().contains("\"red\""));

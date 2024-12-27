@@ -43,7 +43,7 @@ public class SchemaGeneratorTest {
     
     @Test
     public void testSimpleObject() throws Exception {
-        static class SimpleObject {
+        class SimpleObject {
             @JsonProperty("name")
             private String name;
             

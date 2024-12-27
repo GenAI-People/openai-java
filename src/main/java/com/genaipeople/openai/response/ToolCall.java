@@ -29,7 +29,7 @@ public class ToolCall {
         this.type = type;
     }
 
-    public Function geFunction(){
+    public Function getFunction(){
         return this.function;
     }
 

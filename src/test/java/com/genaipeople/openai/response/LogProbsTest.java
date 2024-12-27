@@ -111,7 +111,7 @@ public class LogProbsTest {
             new ContentToken(" today", 0.0, Arrays.asList(32, 116, 111, 100, 97, 121)),
             new ContentToken("?", -2.3392786e-6, Arrays.asList(63))
         );
-        Message message = new Message("Hello", Role.USER);
+        Message message = new Message("Hello", Role.user);
         choice.setMessage(message);
         choice.setIndex(0);
         choice.setFinishReason("stop");

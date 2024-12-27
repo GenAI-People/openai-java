@@ -58,7 +58,7 @@ public class SchemaGenerator {
         }
         
         // Handle String
-        if (type == String.class || type == Date.class) {
+        if (type == String.class || type == Date.class || type == Boolean.class) {
             StringType stringType = new StringType(description);
             if (enumValues != null) {
                 stringType.setEnums(enumValues);
