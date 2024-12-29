@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -24,7 +25,7 @@ import com.genaipeople.openai.tool.type.PropertyDetails;
 public class FunctionChatTest {
     private Chat chat;
     private static final String API_KEY = "API_KEY";
-    private static final String MODEL = "gpt-4o";
+    private static final String MODEL = "gpt-4o-mini";
 
     @BeforeEach
     void setUp() {
@@ -51,14 +52,13 @@ public class FunctionChatTest {
                     com.genaipeople.openai.response.Function responseFunction = 
                         (com.genaipeople.openai.response.Function) toolCall.getFunction();
                     assertTrue(responseFunction.getName().equals("get_current_weather"));
-                    assertTrue(responseFunction.getArguments().contains("\"location\""));
+                    assertNotNull(responseFunction.getParameters());
+                    assertTrue(responseFunction.getParameters().containsKey("location"));
                 }
             }
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             assertTrue(false);
         } catch (ExecutionException e) {
-            // TODO Auto-generated catch block
             assertTrue(false);
         }
     }
@@ -78,8 +78,11 @@ public class FunctionChatTest {
                     com.genaipeople.openai.response.Function responseFunction = 
                         (com.genaipeople.openai.response.Function) toolCall.getFunction();
                     assertTrue(responseFunction.getName().equals("get_product_recommendations"));
-                    assertTrue(responseFunction.getArguments().contains("\"shoes\""));
-                    assertTrue(responseFunction.getArguments().contains("\"red\""));
+                    assertTrue(responseFunction.getParameters().containsKey("price_range"));
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> priceRange = (Map<String, Object>) responseFunction.getParameters().get("price_range");
+                    assertTrue(priceRange.containsKey("min"));
+                    assertTrue(priceRange.containsKey("max"));
                 }
             }
         } catch (InterruptedException e) {
@@ -104,8 +107,8 @@ public class FunctionChatTest {
                     com.genaipeople.openai.response.Function responseFunction = 
                         (com.genaipeople.openai.response.Function) toolCall.getFunction();
                     assertTrue(responseFunction.getName().equals("get_product_details"));
-                    assertTrue(responseFunction.getArguments().contains("\"product_id\""));
-                    assertTrue(responseFunction.getArguments().contains("\"1234\""));
+                    assertTrue(responseFunction.getParameters().containsKey("product_id"));
+                    assertTrue(responseFunction.getParameters().get("product_id").equals("1234"));
                 }
             }
         } catch (InterruptedException e) {
@@ -130,10 +133,17 @@ public class FunctionChatTest {
                     com.genaipeople.openai.response.Function responseFunction = 
                         (com.genaipeople.openai.response.Function) toolCall.getFunction();
                     assertTrue(responseFunction.getName().equals("get_product_recommendations"));
-                    assertTrue(responseFunction.getArguments().contains("\"price_range\""));
-                    assertTrue(responseFunction.getArguments().contains("\"red\""));
-                    assertTrue(responseFunction.getArguments().contains("5"));
-                    assertTrue(responseFunction.getArguments().contains("10"));
+                    
+                    Map<String, Object> parameters = responseFunction.getParameters();
+                    assertNotNull(parameters);
+                    assertTrue(parameters.containsKey("limit"));   
+
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> priceRange = parameters.containsKey("price_range") ? 
+                        (Map<String, Object>) parameters.get("price_range") : null;
+                    assertNotNull(priceRange);
+                    assertTrue(priceRange.containsKey("min"));
+                    assertTrue(priceRange.containsKey("max"));
                 }
             }
         } catch (InterruptedException e) {
@@ -151,10 +161,10 @@ public class FunctionChatTest {
         function.addParameter(new Object() {
             @PropertyDetails(description = "categories that could be a match",
                 enumValues = {"coats & jackets", "accessories", "tops", 
-                            "jeans & trousers", "skirts & dresses", "shoes"})
+                            "jeans & trousers", "skirts & dresses", "footwear"})
             public List<String> categories;
             
-            @PropertyDetails(description = "colors that could be a match, empty array if N/A",
+            @PropertyDetails(description = "The color of the product to be recommended",
                 enumValues = {"black", "white", "brown", "red", "blue", "green",
                             "orange", "yellow", "pink", "gold", "silver"})
             public List<String> colors;

@@ -1,7 +1,9 @@
 package com.genaipeople.openai.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(using = ToolCallDeserializer.class)
 public class ToolCall {
     
     @JsonProperty("id")
