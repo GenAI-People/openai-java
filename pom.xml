@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.genaipeople</groupId>
     <artifactId>openai-java</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -35,4 +35,17 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.jsonl</include>
+                </includes>
+            </testResource>
+        </testResources>
+    </build>
 </project>
