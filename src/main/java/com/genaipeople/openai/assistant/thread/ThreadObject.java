@@ -2,9 +2,13 @@ package com.genaipeople.openai.assistant.thread;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.genaipeople.openai.assistant.ToolResource;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonDeserialize(using = ThreadObjectDeserializer.class)
 public class ThreadObject {
     @JsonProperty("id")
     private String id;
@@ -51,5 +55,13 @@ public class ThreadObject {
 
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+
+    public ToolResource getToolResources() {
+        return toolResources;
+    }
+
+    public void setToolResources(ToolResource toolResources) {
+        this.toolResources = toolResources;
     }
 }

@@ -8,7 +8,7 @@ public class StaticChunkingStrategy implements ChunkingStrategy {
     private String type = "static";
 
     @JsonProperty("static")
-    private StaticSize static_size;
+    private StaticSize staticSize;
 
     @Override
     public String getType() {
@@ -16,14 +16,14 @@ public class StaticChunkingStrategy implements ChunkingStrategy {
     }
 
     public StaticSize getStaticSize() {
-        return static_size;
+        return staticSize;
     }
 
-    public void setStaticSize(StaticSize static_size) {
-        this.static_size = static_size;
+    public void setStaticSize(int maxChunkSizeTokens, int chunkOverlapTokens) {
+        this.staticSize = this.new StaticSize(maxChunkSizeTokens, chunkOverlapTokens);
     }
 
-    class StaticSize {
+    public class StaticSize {
         @JsonProperty("max_chunk_size_tokens")
         private int maxChunkSizeTokens;
 

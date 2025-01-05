@@ -5,11 +5,13 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.genaipeople.openai.assistant.ToolResource;
 import com.genaipeople.openai.tool.Tool;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Assistant {
+@JsonDeserialize(using = AssistantObjectDeserializer.class)
+public class AssistantObject {
     @JsonProperty("id")
     private String id;
 

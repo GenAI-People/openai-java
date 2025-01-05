@@ -1,10 +1,11 @@
-package com.genaipeople.openai.assistant.thread;
+package com.genaipeople.openai.assistant.thread.run;
 
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.genaipeople.openai.assistant.thread.AdditionalMessage;
 import com.genaipeople.openai.tool.Tool;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -55,6 +56,11 @@ public class RunRequest {
     private Boolean parallelToolCalls;
 
 
+    public RunRequest() {
+        this.toolChoice = new ToolChoice();
+        this.toolChoice.setType(ToolChoiceType.AUTO.getValue());
+    }
+
     // Required assistantId constructor
     public RunRequest(String assistantId) {
         if (assistantId == null || assistantId.trim().isEmpty()) {
@@ -66,6 +72,13 @@ public class RunRequest {
     // Getters and setters with validation
     public String getAssistantId() {
         return assistantId;
+    }
+
+    public void setAssistantId(String assistantId) {
+        if (assistantId == null || assistantId.trim().isEmpty()) {
+            throw new IllegalArgumentException("assistant_id is required");
+        }
+        this.assistantId = assistantId;
     }
 
     public String getModel() {

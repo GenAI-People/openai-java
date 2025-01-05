@@ -14,7 +14,6 @@ import java.util.concurrent.SubmissionPublisher;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.io.IOException;
-import java.util.Objects;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +31,7 @@ public class RestClient {
     }
 
     public static CompletableFuture<String> makeAsyncRequest(String apiKey, String url, 
-        HttpMethod method, Object requestBody) {
+        HttpMethod method, Object requestBody, Map<String, String> headers, Map<String, String> queryParams) {
         try {
 
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -40,18 +39,20 @@ public class RestClient {
                     .header("Content-Type", "application/json")
                     .header("Authorization", "Bearer " + apiKey);
 
+            if (headers != null) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    requestBuilder.header(entry.getKey(), entry.getValue());
+                }
+            }
+            if (queryParams != null) {
+                String queryString = queryParams.entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .collect(Collectors.joining("&"));
+                requestBuilder.uri(URI.create(url + "?" + queryString));
+            }
+
             switch (method) {
                 case GET:
-                    if (requestBody != null) {
-                        // Convert request body to query string and append to URL
-                        @SuppressWarnings("unchecked")
-                        Map<String, Object> params = objectMapper.convertValue(requestBody, Map.class);
-                        String queryParams = params.entrySet().stream()
-                            .map(e -> e.getValue() != null ? e.getKey() + "=" + e.getValue() : null)
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.joining("&"));
-                        requestBuilder.uri(URI.create(url + (url.contains("?") ? "&" : "?") + queryParams));
-                    }
                     requestBuilder.GET();
                     break;
                 case POST:
@@ -81,7 +82,8 @@ public class RestClient {
     }
 
     public static CompletableFuture<String> makeAsyncFileRequest(String apiKey, String url, 
-        HttpMethod method, Object requestBody) throws IOException {
+        HttpMethod method, Object requestBody, String filename) throws IOException {
+        
         String boundary = "Boundary-" + System.currentTimeMillis();
         
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -94,7 +96,7 @@ public class RestClient {
                 Map<String, Object> fields = objectMapper.convertValue(requestBody, 
                     new TypeReference<Map<String, Object>>() {});
                 
-                byte[] body = createMultipartBody(fields, boundary);
+                byte[] body = createMultipartBody(fields, boundary, filename);
                 requestBuilder.POST(HttpRequest.BodyPublishers.ofByteArray(body));
                 break;
             default:
@@ -106,14 +108,19 @@ public class RestClient {
                 .thenApply(HttpResponse::body);
     }
 
-    private static byte[] createMultipartBody(Map<String, Object> fields, String boundary) throws IOException {
+    private static byte[] createMultipartBody(Map<String, Object> fields, String boundary, String filename) throws IOException {
+        // Extract just the filename from the path
+        filename = new java.io.File(filename).getName().replace(" ", "_");
+    
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, Object> entry : fields.entrySet()) {
             builder.append("--").append(boundary).append("\r\n");
             if (entry.getValue() instanceof byte[]) {
                 builder.append("Content-Disposition: form-data; name=\"")
                        .append(entry.getKey())
-                       .append("\"; filename=\"file\"\r\n");
+                       .append("\"; filename=\"")
+                       .append(filename)
+                       .append("\"\r\n");
                 builder.append("Content-Type: application/octet-stream\r\n\r\n");
                 builder.append(new String((byte[]) entry.getValue()));
             } else {
@@ -129,7 +136,7 @@ public class RestClient {
     }
 
     public static Flow.Publisher<String> makeStreamingRequest(String apiKey, String url, 
-            HttpMethod method, Object requestBody) {
+            HttpMethod method, Object requestBody, Map<String, String> headers, Map<String, String> queryParams) {
         SubmissionPublisher<String> publisher = new SubmissionPublisher<>();
 
         try {
@@ -138,6 +145,12 @@ public class RestClient {
                     .header("Content-Type", "application/json")
                     .header("Accept", "text/event-stream")
                     .header("Authorization", "Bearer " + apiKey);
+
+            if (headers != null) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    requestBuilder.header(entry.getKey(), entry.getValue());
+                }
+            }
 
             if (method == HttpMethod.POST && requestBody != null) {
                 String jsonBody = objectMapper.writeValueAsString(requestBody);

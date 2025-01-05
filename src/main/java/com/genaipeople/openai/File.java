@@ -1,6 +1,8 @@
 package com.genaipeople.openai;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genaipeople.openai.file.FileDeleteResponse;
@@ -24,7 +26,7 @@ public class File {
         return CompletableFuture.supplyAsync(() -> 
             {
                 try {
-                    return RestClient.makeAsyncFileRequest(apiKey, FILE_URL, HttpMethod.POST, fileDetails);
+                    return RestClient.makeAsyncFileRequest(apiKey, FILE_URL, HttpMethod.POST, fileDetails, fileDetails.getFilename());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -32,7 +34,7 @@ public class File {
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                return CompletableFuture.completedFuture(mapper.readValue(responseString, FileObject.class));
+                return CompletableFuture.completedFuture(OpenAICommons.stringToType(responseString, FileObject.class, mapper));
             } catch (InterruptedException e) {
                 return CompletableFuture.failedFuture(new RuntimeException("Request interrupted", e));
             } catch (Exception e) {
@@ -42,15 +44,24 @@ public class File {
     }
 
     public CompletableFuture<FileList> list(FileListQuery query) {
+        Map<String, String> queryParams = new HashMap<>();
+        if (query.getLimit() != null) {
+            queryParams.put("limit", query.getLimit().toString());
+        }
+        if (query.getPurpose() != null) {
+            queryParams.put("purpose", query.getPurpose().toString());
+        }
+        if (query.getAfter() != null) {
+            queryParams.put("after", query.getAfter());
+        }
         return CompletableFuture.supplyAsync(() -> 
-            RestClient.makeAsyncRequest(apiKey, FILE_URL, HttpMethod.GET, query)
+            RestClient.makeAsyncRequest(apiKey, FILE_URL, HttpMethod.GET, null, null, queryParams)
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                System.out.println("Response: " + responseString);
-                return CompletableFuture.completedFuture(
-                    mapper.readValue(responseString, FileList.class)
-                );
+                // System.out.println("Response: " + responseString);
+                return CompletableFuture.completedFuture(OpenAICommons.stringToType(responseString, 
+                    FileList.class, mapper));
             } catch (Exception e) {
                 e.printStackTrace();
                 return CompletableFuture.failedFuture(e);
@@ -60,11 +71,11 @@ public class File {
 
     public CompletableFuture<FileObject> retrieve(String fileId) {
         return CompletableFuture.supplyAsync(() -> 
-            RestClient.makeAsyncRequest(apiKey, FILE_URL + "/" + fileId, HttpMethod.GET, null)
+            RestClient.makeAsyncRequest(apiKey, FILE_URL + "/" + fileId, HttpMethod.GET, null, null, null)
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                return CompletableFuture.completedFuture(mapper.readValue(responseString, FileObject.class));
+                return CompletableFuture.completedFuture(OpenAICommons.stringToType(responseString, FileObject.class, mapper));
             } catch (Exception e) {
                 return CompletableFuture.failedFuture(e);
             }
@@ -73,12 +84,11 @@ public class File {
 
     public CompletableFuture<FileDeleteResponse> delete(String fileId) {
         return CompletableFuture.supplyAsync(() -> 
-            RestClient.makeAsyncRequest(apiKey, FILE_URL + "/" + fileId, HttpMethod.DELETE, null)
+            RestClient.makeAsyncRequest(apiKey, FILE_URL + "/" + fileId, HttpMethod.DELETE, null, null, null)
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                return CompletableFuture.completedFuture(mapper.readValue(responseString, 
-                    FileDeleteResponse.class));
+                return CompletableFuture.completedFuture(OpenAICommons.stringToType(responseString, FileDeleteResponse.class, mapper));
             } catch (Exception e) {
                 return CompletableFuture.failedFuture(e);
             }
@@ -87,7 +97,7 @@ public class File {
 
     public CompletableFuture<byte[]> retrieveContent(String fileId) {
         return CompletableFuture.supplyAsync(() -> 
-            RestClient.makeAsyncRequest(apiKey, FILE_URL + "/" + fileId + "/content", HttpMethod.GET, null)
+            RestClient.makeAsyncRequest(apiKey, FILE_URL + "/" + fileId + "/content", HttpMethod.GET, null, null, null)
         ).thenCompose((res) -> {
             try {
                 return CompletableFuture.completedFuture(res.get().getBytes());

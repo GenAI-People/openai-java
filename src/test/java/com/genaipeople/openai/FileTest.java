@@ -2,6 +2,9 @@ package com.genaipeople.openai;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.junit.jupiter.api.Test;
 
 import com.genaipeople.openai.file.FileDeleteResponse;
@@ -12,25 +15,25 @@ import com.genaipeople.openai.file.FileObject;
 import com.genaipeople.openai.file.FilePurpose;
 
 public class FileTest {
-    private static final String API_KEY = "API_KEY";
 
     @Test
     public void testFileUpload() throws Exception {
-        FileObject fileObject = uploadFile();
+        FileObject fileObject = uploadFile(FilePurpose.FINE_TUNE);
         assertNotNull(fileObject);
     }
 
-    private FileObject uploadFile() throws Exception {
-        File file = new File(API_KEY);
+    public static FileObject uploadFile(FilePurpose purpose) throws Exception {
+        File file = new File(OpenAI.API_KEY);
+        Path path = Paths.get("src/test/resources/file/ai_regulation.pdf");
         FileDetails fileDetails = new FileDetails(
-            java.nio.file.Path.of("src/test/resources/file/file.jsonl"), 
-            FilePurpose.FINE_TUNE
+            path, 
+            purpose
         );
         return file.upload(fileDetails).get();
     }   
 
-    private FileList listFiles() throws Exception {
-        File file = new File(API_KEY);
+    public static FileList listFiles() throws Exception {
+        File file = new File(OpenAI.API_KEY);
         FileListQuery fileListQuery = new FileListQuery();
         return file.list(fileListQuery).get();
     }
@@ -43,11 +46,11 @@ public class FileTest {
 
     @Test
     public void testFileRetrieve() throws Exception {
-        FileObject fileObject = uploadFile();
+        FileObject fileObject = uploadFile(FilePurpose.ASSISTANTS);
         if (fileObject == null) {
             assert false;
         }
-        File file = new File(API_KEY);
+        File file = new File(OpenAI.API_KEY);
         FileObject retrievedFileObject = file.retrieve(fileObject.getId()).get();
         assertNotNull(retrievedFileObject);
     }
@@ -55,11 +58,11 @@ public class FileTest {
 
     @Test
     public void testFileRetrieveContent() throws Exception {
-        FileObject fileObject = uploadFile();
+        FileObject fileObject = uploadFile(FilePurpose.ASSISTANTS);
         if (fileObject == null) {
             assert false;
         }
-        File file = new File(API_KEY);
+        File file = new File(OpenAI.API_KEY);
         FileObject retrievedFileObject = file.retrieve(fileObject.getId()).get();
         String content = retrievedFileObject.getStatus();
         assertNotNull(content);
@@ -67,7 +70,7 @@ public class FileTest {
 
     @Test
     public void testFileDelete() throws Exception {
-        FileObject fileObject = uploadFile();
+        FileObject fileObject = uploadFile(FilePurpose.ASSISTANTS);
         if (fileObject == null) {
             assert false;
         }
@@ -76,9 +79,14 @@ public class FileTest {
             assert false;
         }
         for (FileObject fileObject2 : fileList.getData()) {
-            File file = new File(API_KEY);
+            File file = new File(OpenAI.API_KEY);
             FileDeleteResponse fileDeleteResponse = file.delete(fileObject2.getId()).get();
             assertNotNull(fileDeleteResponse);
         }
+    }
+
+    public static void deleteFile(String fileId) throws Exception {
+        File file = new File(OpenAI.API_KEY);
+        file.delete(fileId).get();
     }
 }

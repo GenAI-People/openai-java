@@ -30,6 +30,9 @@ public class ErrorResponse {
         @JsonProperty("param")
         private String param;
 
+        public Error() {
+        }
+
         public String getMessage() {
             return message;
         }

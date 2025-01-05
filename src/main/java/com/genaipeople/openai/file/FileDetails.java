@@ -4,9 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FileDetails {
+
+    @JsonIgnore
+    private String filename;
+
     @JsonProperty("file")
     private byte[] content;
 
@@ -16,5 +21,10 @@ public class FileDetails {
     public FileDetails(Path filePath, FilePurpose purpose) throws IOException {
         this.content = Files.readAllBytes(filePath);
         this.purpose = purpose.getValue();
+        this.filename = filePath.getFileName().toString();
+    }
+
+    public String getFilename() {
+        return filename;
     }
 }

@@ -24,12 +24,11 @@ import com.genaipeople.openai.tool.type.PropertyDetails;
 
 public class FunctionChatTest {
     private Chat chat;
-    private static final String API_KEY = "API_KEY";
     private static final String MODEL = "gpt-4o-mini";
 
     @BeforeEach
     void setUp() {
-        chat = new Chat(API_KEY);
+        chat = new Chat(OpenAI.API_KEY);
     }
 
     @Test

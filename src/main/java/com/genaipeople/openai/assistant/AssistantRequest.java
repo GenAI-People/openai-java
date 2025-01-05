@@ -6,6 +6,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.genaipeople.openai.assistant.response.ResponseFormat;
+import com.genaipeople.openai.tool.CodeInterpreter;
 import com.genaipeople.openai.tool.Tool;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -31,6 +32,14 @@ public class AssistantRequest {
     @JsonProperty("response_format")
     private ResponseFormat responseFormat;
 
+    public AssistantRequest() {}// Main class constructor
+    public AssistantRequest(String instructions, String name, 
+        List<Tool> tools, String model) {
+        this.instructions = instructions;
+        this.name = name;
+        this.tools = tools;
+        this.model = model;
+    }
     // Main class getters and setters
     public String getModel() { return model; }
     public void setModel(String model) { this.model = model; }

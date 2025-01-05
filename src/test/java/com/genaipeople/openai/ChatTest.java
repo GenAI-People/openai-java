@@ -18,6 +18,7 @@ import org.mockito.MockedStatic;
 import static org.mockito.Mockito.mockStatic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genaipeople.openai.message.Message;
 import com.genaipeople.openai.message.content.TextContent;
 import com.genaipeople.openai.response.Choice;
@@ -31,13 +32,12 @@ import com.genaipeople.openai.text.ChatResponse;
 class ChatTest {
 
     private Chat chat;
-    private static final String API_KEY = "API_KEY";
     private static final String COMPLETION_URL = "https://api.openai.com/v1/chat/completions";
     private static final String MODEL = "gpt-4o";
 
     @BeforeEach
     void setUp() {
-        chat = new Chat(API_KEY);
+        chat = new Chat(OpenAI.API_KEY);
     }
 
     @Test
@@ -48,7 +48,7 @@ class ChatTest {
         String jsonResponse = "{\"id\":\"test-id\",\"object\":\"chat.completion\"}";
 
         try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
-            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, request))
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(OpenAI.API_KEY, COMPLETION_URL, HttpMethod.POST, request, null, null))
                     .thenReturn(CompletableFuture.completedFuture(jsonResponse));
 
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
@@ -88,7 +88,7 @@ class ChatTest {
             CompletableFuture<String> failedFuture = new CompletableFuture<>();
             failedFuture.completeExceptionally(new InterruptedException("Test interruption"));
 
-            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, request))
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(OpenAI.API_KEY, COMPLETION_URL, HttpMethod.POST, request, null, null))
                     .thenReturn(failedFuture);
 
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
@@ -107,7 +107,7 @@ class ChatTest {
             CompletableFuture<String> failedFuture = new CompletableFuture<>();
             failedFuture.completeExceptionally(new ExecutionException(new RuntimeException("Test execution exception")));
 
-            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, request))
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(OpenAI.API_KEY, COMPLETION_URL, HttpMethod.POST, request, null, null))
                     .thenReturn(failedFuture);
 
             CompletableFuture<ChatResponse> futureResponse = chat.complete(request);
@@ -151,18 +151,26 @@ class ChatTest {
         expectedResponse.setId("chatcmpl-A8JuM6pdfIt5E9V7kGIE4rbBRqz4L");
         expectedResponse.setObject("chat.completion");
 
-        ChatResponse actualResponse = chat.stringToChatResponse(jsonResponse);
-        System.out.println(actualResponse);
-        assertNotNull(actualResponse);
-        assertEquals(expectedResponse.getId(), actualResponse.getId());
-        assertEquals(expectedResponse.getObject(), actualResponse.getObject());
+        ObjectMapper mapper = new ObjectMapper();
+        ChatResponse actualResponse;
+        try {
+            actualResponse = OpenAICommons.stringToType(jsonResponse, ChatResponse.class, mapper);
+            System.out.println(actualResponse);
+            assertNotNull(actualResponse);
+            assertEquals(expectedResponse.getId(), actualResponse.getId());
+            assertEquals(expectedResponse.getObject(), actualResponse.getObject()); 
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Failed to convert JSON to ChatResponse");
+        }
+        
     }
 
     @Test
     void testStringToChatResponseWithInvalidJson() {
         String invalidJson = "invalid json";
-
-        assertThrows(RuntimeException.class, () -> chat.stringToChatResponse(invalidJson));
+        ObjectMapper mapper = new ObjectMapper();
+        assertThrows(RuntimeException.class, () -> OpenAICommons.stringToType(invalidJson,  ChatResponse.class, mapper));
     }
 
     @Test
@@ -195,29 +203,35 @@ class ChatTest {
                 "}";
 
         try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
-            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest))
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(OpenAI.API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest, null, null))
                     .thenReturn(CompletableFuture.completedFuture(jsonResponse));
 
             CompletableFuture<ChatResponse> futureResponse = chat.complete(chatRequest);
             ChatResponse actualResponse = futureResponse.get();
-
-            ChatResponse expectedResponse = chat.stringToChatResponse(jsonResponse);
-            System.out.println(expectedResponse);
-            assertNotNull(actualResponse);
-            //assertEquals(expectedResponse.getId(), actualResponse.getId());
-           
-            List<Choice> actualChoices = actualResponse.getChoices();
-            List<Choice> expectedChoices = expectedResponse.getChoices();
-            assertNotNull(actualChoices);
-            assertEquals(expectedChoices.size(), actualChoices.size());
-            for (int i = 0; i < expectedChoices.size(); i++) {
-                Choice expectedChoice = expectedChoices.get(i);
-                Choice actualChoice = actualChoices.get(i);
-                assertEquals(expectedChoice.getMessage().getRole(), actualChoice.getMessage().getRole());
-                assertNotNull(actualChoice.getMessage().getContent());
-                TextContent actualTextContent = (TextContent) actualChoice.getMessage().getContent();
-                System.out.println(actualTextContent.getContent());
-                assertTrue(actualTextContent.getContent().length() > 0);
+            ObjectMapper mapper = new ObjectMapper();
+            ChatResponse expectedResponse;
+            try {
+                expectedResponse = OpenAICommons.stringToType(jsonResponse, ChatResponse.class, mapper);
+                System.out.println(expectedResponse);
+                assertNotNull(actualResponse);
+                //assertEquals(expectedResponse.getId(), actualResponse.getId());
+            
+                List<Choice> actualChoices = actualResponse.getChoices();
+                List<Choice> expectedChoices = expectedResponse.getChoices();
+                assertNotNull(actualChoices);
+                assertEquals(expectedChoices.size(), actualChoices.size());
+                for (int i = 0; i < expectedChoices.size(); i++) {
+                    Choice expectedChoice = expectedChoices.get(i);
+                    Choice actualChoice = actualChoices.get(i);
+                    assertEquals(expectedChoice.getMessage().getRole(), actualChoice.getMessage().getRole());
+                    assertNotNull(actualChoice.getMessage().getContent());
+                    TextContent actualTextContent = (TextContent) actualChoice.getMessage().getContent();
+                    System.out.println(actualTextContent.getContent());
+                    assertTrue(actualTextContent.getContent().length() > 0);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Failed to convert JSON to ChatResponse");
             }
         }
     }
@@ -254,28 +268,35 @@ class ChatTest {
                 "}";
 
         try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
-            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest))
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(OpenAI.API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest, null, null))
                     .thenReturn(CompletableFuture.completedFuture(jsonResponse));
 
             CompletableFuture<ChatResponse> futureResponse = chat.complete(chatRequest);
             ChatResponse actualResponse = futureResponse.get();
 
-            ChatResponse expectedResponse = chat.stringToChatResponse(jsonResponse);
-            System.out.println(expectedResponse);
-            assertNotNull(actualResponse);
-           
-            List<Choice> actualChoices = actualResponse.getChoices();
-            List<Choice> expectedChoices = expectedResponse.getChoices();
-            assertNotNull(actualChoices);
-            assertEquals(expectedChoices.size(), actualChoices.size());
-            for (int i = 0; i < expectedChoices.size(); i++) {
-                Choice expectedChoice = expectedChoices.get(i);
-                Choice actualChoice = actualChoices.get(i);
-                assertEquals(expectedChoice.getMessage().getRole(), actualChoice.getMessage().getRole());
-                assertNotNull(actualChoice.getMessage().getContent());
-                TextContent actualTextContent = (TextContent) actualChoice.getMessage().getContent();
-                System.out.println(actualTextContent.getContent());
-                assertTrue(actualTextContent.getContent().length() > 0);
+            ObjectMapper mapper = new ObjectMapper();
+            ChatResponse expectedResponse;
+            try {
+                expectedResponse = OpenAICommons.stringToType(jsonResponse, ChatResponse.class, mapper);
+                System.out.println(expectedResponse);
+                assertNotNull(actualResponse);
+               
+                 List<Choice> actualChoices = actualResponse.getChoices();
+                List<Choice> expectedChoices = expectedResponse.getChoices();
+                assertNotNull(actualChoices);
+                assertEquals(expectedChoices.size(), actualChoices.size());
+                for (int i = 0; i < expectedChoices.size(); i++) {
+                    Choice expectedChoice = expectedChoices.get(i);
+                    Choice actualChoice = actualChoices.get(i);
+                    assertEquals(expectedChoice.getMessage().getRole(), actualChoice.getMessage().getRole());
+                    assertNotNull(actualChoice.getMessage().getContent());
+                    TextContent actualTextContent = (TextContent) actualChoice.getMessage().getContent();
+                    System.out.println(actualTextContent.getContent());
+                    assertTrue(actualTextContent.getContent().length() > 0);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("Failed to convert JSON to ChatResponse");
             }
         }
     }
@@ -311,7 +332,7 @@ class ChatTest {
                 "}";
 
         try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
-            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest))
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(OpenAI.API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest, null, null))
                     .thenReturn(CompletableFuture.completedFuture(jsonResponse));
 
             CompletableFuture<ChatResponse> futureResponse = chat.complete(chatRequest);
@@ -343,7 +364,7 @@ class ChatTest {
                 "}";
 
         try (MockedStatic<RestClient> mockedRestClient = mockStatic(RestClient.class)) {
-            mockedRestClient.when(() -> RestClient.makeAsyncRequest(API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest))
+            mockedRestClient.when(() -> RestClient.makeAsyncRequest(OpenAI.API_KEY, COMPLETION_URL, HttpMethod.POST, chatRequest, null, null))
                     .thenReturn(CompletableFuture.completedFuture(jsonResponse));
             
             CompletableFuture<ChatResponse> futureResponse = chat.complete(chatRequest);
@@ -378,9 +399,8 @@ class ChatTest {
                 "  }\n" +
                 "}";
 
-        Chat chat = new Chat(API_KEY);
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> chat.stringToChatResponse(errorResponse));
+        ObjectMapper mapper = new ObjectMapper();
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> OpenAICommons.stringToType(errorResponse, ChatResponse.class, mapper));
         assertEquals("Code: invalid_image Message: Invalid image.", exception.getMessage());
     }
 
