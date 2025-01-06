@@ -24,7 +24,7 @@ public class FileTest {
 
     public static FileObject uploadFile(FilePurpose purpose) throws Exception {
         File file = new File(OpenAI.API_KEY);
-        Path path = Paths.get("src/test/resources/file/ai_regulation.pdf");
+        Path path = Paths.get("src/test/resources/file/file.json");
         FileDetails fileDetails = new FileDetails(
             path, 
             purpose
