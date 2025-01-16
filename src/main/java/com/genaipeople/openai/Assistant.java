@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genaipeople.openai.assistant.AssistantListObject;
 import com.genaipeople.openai.assistant.AssistantRequest;
