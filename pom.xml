@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.genaipeople</groupId>
     <artifactId>openai-java</artifactId>
-    <version>0.3</version>
+    <version>0.7.13-Beta</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>

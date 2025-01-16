@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genaipeople.openai.assistant.thread.run.RunObject;
 import com.genaipeople.openai.assistant.thread.run.RunRequest;
+import com.genaipeople.openai.assistant.thread.run.RunCreateRequest;
 import com.genaipeople.openai.service.RestClient;
 import com.genaipeople.openai.service.RestClient.HttpMethod;
 
@@ -24,8 +25,22 @@ public class ThreadRun {
         headers.put("OpenAI-Beta", "assistants=v2");
     }
 
-    public CompletableFuture<RunObject> create(RunRequest request) {
+    public CompletableFuture<RunObject> create(RunCreateRequest request) {
         String url = String.format("%s/%s/runs", threadUrl, threadId);
+        return CompletableFuture.supplyAsync(() ->
+            RestClient.makeAsyncRequest(apiKey, url, HttpMethod.POST, request, headers, null)
+        ).thenCompose((res) -> {
+            try {
+                String responseString = res.get();
+                return CompletableFuture.completedFuture(OpenAICommons.stringToType(responseString, RunObject.class, mapper));
+            } catch (Exception e) {
+                return CompletableFuture.failedFuture(e);
+            }
+        });
+    }
+
+    public CompletableFuture<RunObject> run(RunRequest request) {
+        String url = String.format("%s/runs", threadUrl, threadId);
         return CompletableFuture.supplyAsync(() ->
             RestClient.makeAsyncRequest(apiKey, url, HttpMethod.POST, request, headers, null)
         ).thenCompose((res) -> {

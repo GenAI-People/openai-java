@@ -1,12 +1,10 @@
 package com.genaipeople.openai.assistant.thread.run;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.genaipeople.openai.response.ToolCall;
 import com.genaipeople.openai.response.Usage;
 import com.genaipeople.openai.text.ErrorResponse;
 
@@ -59,37 +57,6 @@ public class RunStep {
 
     @JsonProperty("metadata")
     private Map<String, String> metadata = new HashMap<>();
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public class StepDetails {
-
-        @JsonProperty("message_creation")
-        private MessageCreation messageCreation;
-
-        @JsonProperty("tool_calls")
-        private List<ToolCall> toolCalls;
-
-        public MessageCreation getMessageCreation() { return messageCreation; }
-        public void setMessageCreation(MessageCreation messageCreation) { this.messageCreation = messageCreation; }
-
-        public List<ToolCall> getToolCalls() { return toolCalls; }
-        public void setToolCalls(List<ToolCall> toolCalls) { this.toolCalls = toolCalls; }
-    }
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public class MessageCreation {
-        @JsonProperty("type")
-        private String type = "message_creation";
-
-        @JsonProperty("message_id")
-        private String messageId;
-
-        public String getType() { return type; }
-        public void setType(String type) { this.type = type; }
-
-        public String getMessageId() { return messageId; }
-        public void setMessageId(String messageId) { this.messageId = messageId; }
-    }
 
     // Getters and setters
     public String getId() { return id; }

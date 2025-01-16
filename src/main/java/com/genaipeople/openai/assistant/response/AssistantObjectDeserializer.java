@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.genaipeople.openai.assistant.CodeInterpreterResource;
+import com.genaipeople.openai.assistant.DeserializerUtil;
 import com.genaipeople.openai.assistant.FileSearchResource;
 import com.genaipeople.openai.assistant.ToolResource;
 import com.genaipeople.openai.tool.CodeInterpreter;
@@ -44,53 +45,20 @@ public class AssistantObjectDeserializer extends StdDeserializer<AssistantObject
         
         // Handle tools array
         if (node.has("tools") && node.get("tools").isArray()) {
-            List<Tool> tools = new ArrayList<>();
-            for (JsonNode toolNode : node.get("tools")) {
-                String type = toolNode.get("type").asText();
-                Tool tool;
-                switch (type) {
-                    case "code_interpreter":
-                        tool = new CodeInterpreter();
-                        break;
-                    case "file_search":
-                        tool = new FileSearch();
-                        break;
-                    case "function":
-                        tool = jp.getCodec().treeToValue(toolNode, Function.class);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown tool type: " + type);
-                }
-                tools.add(tool);
-            }
-            assistant.setTools(tools);
+            assistant.setTools(DeserializerUtil.deserializeTools(jp, node));
         }
 
         // Handle tool_resources
         if (node.has("tool_resources")) {
             JsonNode resourcesNode = node.get("tool_resources");
             if (resourcesNode.has("type")) {
-                String type = resourcesNode.get("type").asText();
-                ToolResource resources;
-                switch (type) {
-                    case "code_interpreter":
-                        resources = jp.getCodec().treeToValue(resourcesNode, CodeInterpreterResource.class);
-                        break;
-                    case "file_search":
-                        resources = jp.getCodec().treeToValue(resourcesNode, FileSearchResource.class);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown resource type: " + type);
-                }
-                assistant.setToolResources(resources);
+                assistant.setToolResources(DeserializerUtil.deserializeToolResources(jp, resourcesNode));
             }
         }
 
         // Handle metadata
         if (node.has("metadata")) {
-            @SuppressWarnings("unchecked")
-            Map<String, String> metadata = jp.getCodec().treeToValue(node.get("metadata"), Map.class);
-            assistant.setMetadata(metadata);
+            assistant.setMetadata(DeserializerUtil.deserializeMetadata(jp, node));
         }
 
         assistant.setTemperature(getDoubleValue(node, "temperature"));

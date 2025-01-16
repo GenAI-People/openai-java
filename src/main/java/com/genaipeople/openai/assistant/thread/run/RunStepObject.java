@@ -4,10 +4,11 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.genaipeople.openai.assistant.thread.run.RunStep.StepDetails;
 import com.genaipeople.openai.response.Usage;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonDeserialize(using = RunStepObjectDeserializer.class)
 public class RunStepObject {
     @JsonProperty("id")
     private String id;
@@ -39,8 +40,8 @@ public class RunStepObject {
     @JsonProperty("last_error")
     private Error lastError;
 
-    @JsonProperty("expired_at")
-    private Long expiredAt;
+    @JsonProperty("expires_at")
+    private Long expiresAt;
 
     @JsonProperty("cancelled_at")
     private Long cancelledAt;
@@ -88,8 +89,8 @@ public class RunStepObject {
     public Error getLastError() { return lastError; }
     public void setLastError(Error lastError) { this.lastError = lastError; }
 
-    public Long getExpiredAt() { return expiredAt; }
-    public void setExpiredAt(Long expiredAt) { this.expiredAt = expiredAt; }
+    public Long getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(Long expiresAt) { this.expiresAt = expiresAt; }
 
     public Long getCancelledAt() { return cancelledAt; }
     public void setCancelledAt(Long cancelledAt) { this.cancelledAt = cancelledAt; }

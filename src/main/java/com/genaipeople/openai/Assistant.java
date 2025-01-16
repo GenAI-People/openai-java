@@ -3,8 +3,12 @@ package com.genaipeople.openai;
 import java.util.concurrent.CompletableFuture;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.genaipeople.openai.assistant.AssistantListObject;
 import com.genaipeople.openai.assistant.AssistantRequest;
 import com.genaipeople.openai.assistant.response.AssistantObject;
 import com.genaipeople.openai.service.RestClient;
@@ -72,7 +76,7 @@ public class Assistant {
         });
     }
 
-    public CompletableFuture<AssistantObject> list(Integer limit, String order, String after, String before) {
+    public CompletableFuture<List<AssistantObject>> list(Integer limit, String order, String after, String before) {
         Map<String, String> queryParams = new HashMap<>();
         if (limit != null) {
             queryParams.put("limit", limit.toString());
@@ -91,7 +95,9 @@ public class Assistant {
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                return CompletableFuture.completedFuture(OpenAICommons.stringToType(responseString, AssistantObject.class, objectMapper));
+                AssistantListObject assistantListObject = OpenAICommons.stringToType(responseString, 
+                AssistantListObject.class, objectMapper);
+                return CompletableFuture.completedFuture(assistantListObject.getData());
             } catch (Exception e) {
                 return CompletableFuture.failedFuture(e);
             }

@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.genaipeople.openai.assistant.thread.run.RunStepList;
 import com.genaipeople.openai.assistant.thread.run.RunStepObject;
 import com.genaipeople.openai.service.RestClient;
 import com.genaipeople.openai.service.RestClient.HttpMethod;
@@ -34,8 +35,9 @@ public class ThreadRunStep {
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                return CompletableFuture.completedFuture(OpenAICommons.stringToType(responseString, 
-                    new TypeReference<List<RunStepObject>>() {}, mapper));
+                RunStepList runStepList = OpenAICommons.stringToType(responseString, 
+                    RunStepList.class, mapper);
+                return CompletableFuture.completedFuture(runStepList.getData());
             } catch (Exception e) {
                 return CompletableFuture.failedFuture(e);
             }
@@ -76,8 +78,8 @@ public class ThreadRunStep {
         ).thenCompose((res) -> {
             try {
                 String responseString = res.get();
-                return CompletableFuture.completedFuture(OpenAICommons.stringToType(responseString, 
-                    new TypeReference<List<RunStepObject>>() {}, mapper));
+                RunStepList runStepList = OpenAICommons.stringToType(responseString, RunStepList.class, mapper);
+                return CompletableFuture.completedFuture(runStepList.getData());
             } catch (Exception e) {
                 return CompletableFuture.failedFuture(e);
             }

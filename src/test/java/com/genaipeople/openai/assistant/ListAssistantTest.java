@@ -1,6 +1,9 @@
 package com.genaipeople.openai.assistant;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import com.genaipeople.openai.Assistant;
 import com.genaipeople.openai.OpenAI;
@@ -11,7 +14,7 @@ public class ListAssistantTest {
     @Test
     public void testListAssistants() throws Exception {
         Assistant assistant = new Assistant(OpenAI.API_KEY);
-        AssistantObject result = assistant.list(20, "desc", null, null).get();
+        List<AssistantObject> result = assistant.list(20, "desc", null, null).get();
         
         assertNotNull(result);
     }
@@ -19,7 +22,7 @@ public class ListAssistantTest {
     @Test
     public void testListAssistantsWithPagination() throws Exception {
         Assistant assistant = new Assistant(OpenAI.API_KEY);
-        AssistantObject result = assistant.list(5, "asc", "asst_abc123", null).get();
+        List<AssistantObject> result = assistant.list(5, "asc", "asst_abc123", null).get();
         
         assertNotNull(result);
     }

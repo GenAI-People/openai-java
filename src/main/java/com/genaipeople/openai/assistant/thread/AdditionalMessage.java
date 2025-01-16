@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.genaipeople.openai.assistant.Attachment;
 import com.genaipeople.openai.message.Message;
-import com.genaipeople.openai.tool.Tool;
 
 public class AdditionalMessage extends Message {
     @JsonProperty("attachments")
@@ -28,29 +28,5 @@ public class AdditionalMessage extends Message {
 
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
-    }
-
-    public class Attachment {
-        @JsonProperty("file_id")
-        private String fileId;
-
-        @JsonProperty("tools")
-        private List<Tool> tools;
-
-        public String getFileId() {
-            return fileId;
-        }
-
-        public void setFileId(String fileId) {
-            this.fileId = fileId;
-        }
-
-        public List<Tool> getTools() {
-            return tools;
-        }
-
-        public void setTools(List<Tool> tools) {
-            this.tools = tools;
-        }
     }
 }

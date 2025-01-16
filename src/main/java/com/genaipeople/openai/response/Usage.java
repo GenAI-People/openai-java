@@ -17,7 +17,7 @@ public class Usage {
     @JsonProperty("completion_tokens_details")
     private CompletionTokensDetails completionTokensDetails;
 
-    @JsonProperty("prompt_tokens_details")
+    @JsonProperty("prompt_token_details")
     private PromptTokenDetails promptTokenDetails;
 
     @JsonProperty("audio_tokens")

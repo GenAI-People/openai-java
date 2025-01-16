@@ -5,10 +5,13 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.genaipeople.openai.assistant.ToolResource;
 import com.genaipeople.openai.response.Usage;
 import com.genaipeople.openai.tool.Tool;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonDeserialize(using = RunObjectDeserializer.class)
 public class RunObject {
     @JsonProperty("id")
     private String id;
@@ -55,11 +58,17 @@ public class RunObject {
     @JsonProperty("tools")
     private List<Tool> tools;
 
+    @JsonProperty("tool_resources")
+    private ToolResource toolResources;
+
     @JsonProperty("metadata")
     private Map<String, String> metadata;
 
     @JsonProperty("usage")
     private Usage usage;
+
+    @JsonProperty("required_action")
+    private RequiredAction requiredAction;
 
     // Getters and setters
     public String getId() { return id; }
@@ -112,4 +121,10 @@ public class RunObject {
 
     public Usage getUsage() { return usage; }
     public void setUsage(Usage usage) { this.usage = usage; }
+
+    public RequiredAction getRequiredAction() { return requiredAction; }
+    public void setRequiredAction(RequiredAction requiredAction) { this.requiredAction = requiredAction; }
+
+    public ToolResource getToolResources() { return toolResources; }
+    public void setToolResources(ToolResource toolResources) { this.toolResources = toolResources; }
 } 

@@ -142,7 +142,6 @@ public class AssistantTest {
                 List.of(new FileSearch()),
                 "gpt-4o"
             );
-        request.setToolResources(new FileSearchResource(List.of("vs_123")));
         AssistantObject result = assistant.create(
             request
         ).get();

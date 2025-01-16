@@ -5,18 +5,15 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.genaipeople.openai.assistant.ToolResource;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.genaipeople.openai.assistant.thread.AdditionalMessage;
-import com.genaipeople.openai.assistant.thread.ThreadRequest;
 import com.genaipeople.openai.tool.Tool;
 
+@JsonDeserialize(using = RunCreateRequestDeserializer.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RunRequest {
+public class RunCreateRequest {
     @JsonProperty("assistant_id")
     private String assistantId;
-
-    @JsonProperty("thread")
-    private ThreadRequest thread;
 
     @JsonProperty("model")
     private String model;
@@ -32,9 +29,6 @@ public class RunRequest {
 
     @JsonProperty("tools")
     private List<Tool> tools;
-
-    @JsonProperty("tool_resources")
-    private List<ToolResource> toolResources;
 
     @JsonProperty("metadata")
     private Map<String, String> metadata;
@@ -63,14 +57,18 @@ public class RunRequest {
     @JsonProperty("parallel_tool_calls")
     private Boolean parallelToolCalls;
 
+
+    public RunCreateRequest() {
+        this.toolChoice = new ToolChoice();
+        this.toolChoice.setType(ToolChoiceType.auto);
+    }
+
     // Required assistantId constructor
-    public RunRequest(String assistantId) {
+    public RunCreateRequest(String assistantId) {
         if (assistantId == null || assistantId.trim().isEmpty()) {
             throw new IllegalArgumentException("assistant_id is required");
         }
         this.assistantId = assistantId;
-        this.toolChoice = new ToolChoice();
-        this.toolChoice.setType(ToolChoiceType.auto);
     }
 
     // Getters and setters with validation
@@ -218,12 +216,4 @@ public class RunRequest {
     public void setToolChoice(ToolChoice toolChoice) {
         this.toolChoice = toolChoice;
     }
-
-    public ThreadRequest getThread() {
-        return thread;
-    }
-
-    public void setThread(ThreadRequest thread) {
-        this.thread = thread;
-    }
-} 
+}
