@@ -5,11 +5,9 @@ import java.util.List;
 import com.genaipeople.openai.tool.Function;
 
 public class FunctionHandler {
-    private String functionJson;
     private List<Function> functions;
 
     public FunctionHandler(String functionJson) {
-        this.functionJson = functionJson;
     }
 
     public Function getFunction(String name){

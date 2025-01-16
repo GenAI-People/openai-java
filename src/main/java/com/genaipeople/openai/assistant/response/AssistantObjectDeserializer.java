@@ -1,22 +1,12 @@
 package com.genaipeople.openai.assistant.response;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.genaipeople.openai.assistant.CodeInterpreterResource;
 import com.genaipeople.openai.assistant.DeserializerUtil;
-import com.genaipeople.openai.assistant.FileSearchResource;
-import com.genaipeople.openai.assistant.ToolResource;
-import com.genaipeople.openai.tool.CodeInterpreter;
-import com.genaipeople.openai.tool.FileSearch;
-import com.genaipeople.openai.tool.Function;
-import com.genaipeople.openai.tool.Tool;
 
 public class AssistantObjectDeserializer extends StdDeserializer<AssistantObject> {
     

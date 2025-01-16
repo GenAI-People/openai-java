@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genaipeople.openai.assistant.thread.run.RunStepList;
 import com.genaipeople.openai.assistant.thread.run.RunStepObject;
