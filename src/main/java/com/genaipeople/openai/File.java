@@ -1,10 +1,8 @@
 package com.genaipeople.openai;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.genaipeople.openai.file.FileDeleteResponse;
 import com.genaipeople.openai.file.FileDetails;
